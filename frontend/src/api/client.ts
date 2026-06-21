@@ -39,6 +39,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     payload = { message: text || response.statusText } as { message?: string } & T;
   }
   if (!response.ok) {
+    if (response.status === 401) {
+      localStorage.removeItem('asset_token');
+    }
     throw new Error(payload.message || '请求失败');
   }
   return payload;
