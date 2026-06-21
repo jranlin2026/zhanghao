@@ -38,6 +38,14 @@ function userAccess(user: Express.Request['user']): AuthUser | undefined {
   return user ? { id: user.id, roles: user.roles, departmentId: user.departmentId } : undefined;
 }
 
+function assertActiveEntity(entity: { deleted_at?: Date | null } | null): void {
+  if (!entity || entity.deleted_at) {
+    const error = new Error('请求的记录不存在') as Error & { statusCode?: number };
+    error.statusCode = 404;
+    throw error;
+  }
+}
+
 async function writeLog(user: Express.Request['user'], action: string, targetType: string, targetId: number | null, before?: unknown, after?: unknown) {
   await prisma.operationLog.create({
     data: {
@@ -250,6 +258,7 @@ export const assetsService = {
     requireWritable(userAccess(user));
     validateDevicePayload(data);
     const before = await prisma.device.findUnique({ where: { id }, include: deviceInclude() });
+    assertActiveEntity(before);
     const updated = await prisma.device.update({
       where: { id },
       data: {
@@ -276,6 +285,7 @@ export const assetsService = {
     requireWritable(userAccess(user));
     const deletedAt = new Date();
     const before = await prisma.device.findUnique({ where: { id }, include: deviceInclude() });
+    assertActiveEntity(before);
     await prisma.internetAccount.updateMany({
       where: { phone_number: { device_id: id } },
       data: { status: '已注销', deleted_at: deletedAt },
@@ -331,6 +341,7 @@ export const assetsService = {
     requireWritable(userAccess(user));
     validatePhonePayload(data, { partial: true });
     const before = await prisma.phoneNumber.findUnique({ where: { id }, include: phoneInclude() });
+    assertActiveEntity(before);
     const updated = await prisma.phoneNumber.update({
       where: { id },
       data: {
@@ -357,6 +368,7 @@ export const assetsService = {
     requireWritable(userAccess(user));
     const deletedAt = new Date();
     const before = await prisma.phoneNumber.findUnique({ where: { id }, include: phoneInclude() });
+    assertActiveEntity(before);
     await prisma.internetAccount.updateMany({ where: { phone_number_id: id }, data: { status: '已注销', deleted_at: deletedAt } });
     const deleted = await prisma.phoneNumber.update({ where: { id }, data: { status: '已注销', deleted_at: deletedAt } });
     await refreshDeviceRisk(deleted.device_id);
@@ -420,6 +432,7 @@ export const assetsService = {
     requireWritable(userAccess(user));
     validateAccountPayload(data, { partial: true });
     const before = await prisma.internetAccount.findUnique({ where: { id }, include: accountInclude() });
+    assertActiveEntity(before);
     const updated = await prisma.internetAccount.update({
       where: { id },
       data: {
@@ -451,6 +464,7 @@ export const assetsService = {
   async deleteAccount(user: Express.Request['user'], id: number) {
     requireWritable(userAccess(user));
     const before = await prisma.internetAccount.findUnique({ where: { id }, include: accountInclude() });
+    assertActiveEntity(before);
     const deleted = await prisma.internetAccount.update({ where: { id }, data: { status: '已注销', deleted_at: new Date() } });
     await refreshPhoneRisk(deleted.phone_number_id);
     await writeLog(user, 'delete', 'internet_account', id, before, deleted);
