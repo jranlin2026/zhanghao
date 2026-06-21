@@ -211,7 +211,7 @@ export const assetsService = {
     const filtered = rows
       .filter((device) => canReadEntity(userAccess(user), deviceAccessShape(device)))
       .filter((device) => matchesFilters(device, query))
-      .filter((device) => !search || containsKeyword([device.device_code, device.device_name, device.brand_model, device.imei], search));
+      .filter((device) => !search || containsKeyword([device.device_code, device.device_name, device.brand_model, device.imei, device.department?.name, device.owner?.name, device.current_user?.name], search));
     return paginate(filtered.map(serializeDevice), query);
   },
 
@@ -292,7 +292,7 @@ export const assetsService = {
     const filtered = rows
       .filter((phone) => canReadEntity(userAccess(user), phoneAccessShape(phone)))
       .filter((phone) => matchesFilters(phone, query))
-      .filter((phone) => !search || containsKeyword([phone.phone_number, phone.carrier, phone.device.device_name], search));
+      .filter((phone) => !search || containsKeyword([phone.phone_number, phone.carrier, phone.device.device_name, phone.device.device_code, phone.owner?.name], search));
     return paginate(filtered.map(serializePhone), query);
   },
 
@@ -374,7 +374,7 @@ export const assetsService = {
     const filtered = rows
       .filter((account) => canReadEntity(userAccess(user), accountAccessShape(account)))
       .filter((account) => matchesFilters(account, query))
-      .filter((account) => !search || containsKeyword([account.account_code, account.account_name, account.platform, account.login_account], search));
+      .filter((account) => !search || containsKeyword([account.account_code, account.account_name, account.platform, account.login_account, account.department?.name, account.owner?.name, account.current_user?.name], search));
     return paginate(filtered.map(serializeAccount), query);
   },
 
