@@ -9,6 +9,7 @@
 ```bash
 npm run build
 npm test
+npm run verify
 npm run dev:backend
 npm run dev:frontend
 ```
