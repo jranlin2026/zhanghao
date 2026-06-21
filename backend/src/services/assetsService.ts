@@ -198,8 +198,8 @@ export const assetsService = {
     const accessUser = userAccess(user);
     const [devices, phones, accounts] = await Promise.all([
       prisma.device.findMany({ where: { deleted_at: null } }),
-      prisma.phoneNumber.findMany({ where: { deleted_at: null }, include: { device: true } }),
-      prisma.internetAccount.findMany({ where: { deleted_at: null }, include: { phone_number: { include: { device: true } } } }),
+      prisma.phoneNumber.findMany({ where: { deleted_at: null, device: { deleted_at: null } }, include: { device: true } }),
+      prisma.internetAccount.findMany({ where: { deleted_at: null, phone_number: { deleted_at: null, device: { deleted_at: null } } }, include: { phone_number: { include: { device: true } } } }),
     ]);
     const visibleDevices = devices.filter((device) => canReadEntity(accessUser, deviceAccessShape(device)));
     const visiblePhones = phones.filter((phone) => canReadEntity(accessUser, phoneAccessShape(phone)));
