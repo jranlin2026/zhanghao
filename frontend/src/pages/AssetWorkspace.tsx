@@ -1,12 +1,25 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import { AssetModal } from '../components/AssetModal';
-import type { AssetEntity, Device, InternetAccount, PhoneNumber, Stats, User, ViewType } from '../types/assets';
+import type {
+  AssetEntity,
+  AssetMeta,
+  Device,
+  InternetAccount,
+  OperationLog,
+  PhoneNumber,
+  RiskItem,
+  Stats,
+  User,
+  ViewType,
+} from '../types/assets';
 
 type Props = {
   user: User;
   onLogout: () => void;
 };
+
+type Section = 'assets' | 'logs' | 'risks' | 'settings';
 
 const tabs: Array<{ id: ViewType; label: string }> = [
   { id: 'devices', label: '设备列表' },
@@ -14,39 +27,50 @@ const tabs: Array<{ id: ViewType; label: string }> = [
   { id: 'accounts', label: '互联网账号视图' },
 ];
 
-const navItems = ['账号资产', '操作日志', '风险提醒', '系统设置'];
+const navItems: Array<{ id: Section; label: string }> = [
+  { id: 'assets', label: '账号资产' },
+  { id: 'logs', label: '操作日志' },
+  { id: 'risks', label: '风险提醒' },
+  { id: 'settings', label: '系统设置' },
+];
 
 function riskLabel(level: string) {
   return level === 'high' ? '高风险' : level === 'medium' ? '中风险' : level === 'low' ? '低风险' : '无风险';
-}
-
-function StatusBadge({ value, tone = 'neutral' }: { value: string; tone?: string }) {
-  return <span className={`badge ${tone}`}>{value}</span>;
 }
 
 function formatDate(value: string) {
   return new Date(value).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
+function StatusBadge({ value, tone = 'neutral' }: { value: string; tone?: string }) {
+  return <span className={`badge ${tone}`}>{value}</span>;
+}
+
 export function AssetWorkspace({ user, onLogout }: Props) {
+  const [section, setSection] = useState<Section>('assets');
   const [view, setView] = useState<ViewType>('devices');
   const [search, setSearch] = useState('');
   const [items, setItems] = useState<AssetEntity[]>([]);
+  const [logs, setLogs] = useState<OperationLog[]>([]);
+  const [risks, setRisks] = useState<RiskItem[]>([]);
   const [selected, setSelected] = useState<AssetEntity | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
+  const [meta, setMeta] = useState<AssetMeta | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [modalEntity, setModalEntity] = useState<AssetEntity | null | undefined>(undefined);
 
   const canWrite = user.roles.includes('admin');
+  const title = useMemo(() => tabs.find((tab) => tab.id === view)?.label ?? '', [view]);
 
-  const load = useCallback(async () => {
+  const loadAssets = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const [listResponse, statsResponse] = await Promise.all([api.list(view, search), api.stats()]);
+      const [listResponse, statsResponse, metaResponse] = await Promise.all([api.list(view, search), api.stats(), api.meta()]);
       setItems(listResponse.data);
       setStats(statsResponse.data);
+      setMeta(metaResponse.data);
       setSelected((current) => {
         if (!current) return listResponse.data[0] ?? null;
         return listResponse.data.find((item) => item.id === current.id) ?? listResponse.data[0] ?? null;
@@ -58,11 +82,28 @@ export function AssetWorkspace({ user, onLogout }: Props) {
     }
   }, [search, view]);
 
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const loadSecondary = useCallback(async () => {
+    if (section === 'logs') {
+      const response = await api.logs();
+      setLogs(response.data);
+    }
+    if (section === 'risks') {
+      const response = await api.risks();
+      setRisks(response.data);
+    }
+    if (section === 'settings') {
+      const response = await api.meta();
+      setMeta(response.data);
+    }
+  }, [section]);
 
-  const title = useMemo(() => tabs.find((tab) => tab.id === view)?.label ?? '', [view]);
+  useEffect(() => {
+    if (section === 'assets') {
+      void loadAssets();
+    } else {
+      void loadSecondary().catch((err) => setError(err instanceof Error ? err.message : '加载失败'));
+    }
+  }, [loadAssets, loadSecondary, section]);
 
   async function submitModal(values: Record<string, unknown>) {
     if (modalEntity === undefined) return;
@@ -72,7 +113,14 @@ export function AssetWorkspace({ user, onLogout }: Props) {
       await api.create(view, values);
     }
     setModalEntity(undefined);
-    await load();
+    await loadAssets();
+  }
+
+  async function removeSelected() {
+    if (!selected || !window.confirm('确认注销当前资产？')) return;
+    await api.remove(view, selected.id);
+    setSelected(null);
+    await loadAssets();
   }
 
   return (
@@ -80,8 +128,10 @@ export function AssetWorkspace({ user, onLogout }: Props) {
       <aside className="sidebar">
         <div className="brand">账号资产</div>
         <nav>
-          {navItems.map((item, index) => (
-            <button key={item} className={index === 0 ? 'active' : ''}>{item}</button>
+          {navItems.map((item) => (
+            <button key={item.id} className={section === item.id ? 'active' : ''} onClick={() => setSection(item.id)}>
+              {item.label}
+            </button>
           ))}
         </nav>
       </aside>
@@ -90,7 +140,7 @@ export function AssetWorkspace({ user, onLogout }: Props) {
         <header className="topbar">
           <div>
             <span>首页</span>
-            <strong>账号资产</strong>
+            <strong>{navItems.find((item) => item.id === section)?.label}</strong>
           </div>
           <div className="user-box">
             <span>{user.name}</span>
@@ -99,47 +149,57 @@ export function AssetWorkspace({ user, onLogout }: Props) {
           </div>
         </header>
 
-        <section className="content-toolbar">
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="搜索设备名称、IMEI、手机号、账号名称..." />
-          {canWrite && <button className="primary-button" onClick={() => setModalEntity(null)}>新增</button>}
-        </section>
+        {section === 'assets' && (
+          <>
+            <section className="content-toolbar">
+              <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="搜索设备名称、IMEI、手机号、账号名称..." />
+              {canWrite && <button className="primary-button" onClick={() => setModalEntity(null)}>新增</button>}
+            </section>
 
-        <section className="kpi-grid">
-          <div><strong>{stats?.devices ?? '-'}</strong><span>设备总数</span></div>
-          <div><strong>{stats?.phones ?? '-'}</strong><span>手机号</span></div>
-          <div><strong>{stats?.accounts ?? '-'}</strong><span>互联网账号</span></div>
-          <div><strong>{stats?.highRisk ?? '-'}</strong><span>高风险</span></div>
-          <div><strong>{stats?.noOwner ?? '-'}</strong><span>无负责人</span></div>
-        </section>
+            <section className="kpi-grid">
+              <div><strong>{stats?.devices ?? '-'}</strong><span>设备总数</span></div>
+              <div><strong>{stats?.phones ?? '-'}</strong><span>手机号</span></div>
+              <div><strong>{stats?.accounts ?? '-'}</strong><span>互联网账号</span></div>
+              <div><strong>{stats?.highRisk ?? '-'}</strong><span>高风险</span></div>
+              <div><strong>{stats?.noOwner ?? '-'}</strong><span>无负责人</span></div>
+            </section>
 
-        <section className="tabs">
-          {tabs.map((tab) => (
-            <button key={tab.id} className={view === tab.id ? 'active' : ''} onClick={() => { setView(tab.id); setSelected(null); }}>
-              {tab.label}
-            </button>
-          ))}
-        </section>
+            <section className="tabs">
+              {tabs.map((tab) => (
+                <button key={tab.id} className={view === tab.id ? 'active' : ''} onClick={() => { setView(tab.id); setSelected(null); }}>
+                  {tab.label}
+                </button>
+              ))}
+            </section>
 
-        {error && <div className="error-banner">{error}</div>}
-        <section className="table-wrap">
-          <h1>{title}</h1>
-          {loading ? <div className="empty">加载中...</div> : <AssetTable view={view} items={items} selected={selected} onSelect={setSelected} />}
-        </section>
+            {error && <div className="error-banner">{error}</div>}
+            <section className="table-wrap">
+              <h1>{title}</h1>
+              {loading ? <div className="empty">加载中...</div> : <AssetTable view={view} items={items} selected={selected} onSelect={setSelected} />}
+            </section>
+          </>
+        )}
+
+        {section === 'logs' && <LogPanel logs={logs} />}
+        {section === 'risks' && <RiskPanel risks={risks} />}
+        {section === 'settings' && <SettingsPanel meta={meta} />}
       </main>
 
       <aside className="detail-panel">
-        <DetailPanel entity={selected} view={view} canWrite={canWrite} onEdit={() => selected && setModalEntity(selected)} />
+        {section === 'assets' ? (
+          <DetailPanel entity={selected} view={view} canWrite={canWrite} onEdit={() => selected && setModalEntity(selected)} onDelete={removeSelected} />
+        ) : (
+          <div className="detail-empty">详情面板会跟随资产列表展示</div>
+        )}
       </aside>
 
-      {modalEntity !== undefined && <AssetModal view={view} entity={modalEntity} onClose={() => setModalEntity(undefined)} onSubmit={submitModal} />}
+      {modalEntity !== undefined && <AssetModal view={view} entity={modalEntity} meta={meta} onClose={() => setModalEntity(undefined)} onSubmit={submitModal} />}
     </div>
   );
 }
 
 function AssetTable({ view, items, selected, onSelect }: { view: ViewType; items: AssetEntity[]; selected: AssetEntity | null; onSelect: (entity: AssetEntity) => void }) {
-  if (items.length === 0) {
-    return <div className="empty">暂无数据</div>;
-  }
+  if (items.length === 0) return <div className="empty">暂无数据</div>;
 
   if (view === 'devices') {
     return (
@@ -179,19 +239,10 @@ function AssetTable({ view, items, selected, onSelect }: { view: ViewType; items
   );
 }
 
-function DetailPanel({ entity, view, canWrite, onEdit }: { entity: AssetEntity | null; view: ViewType; canWrite: boolean; onEdit: () => void }) {
-  if (!entity) {
-    return <div className="detail-empty">请选择设备查看详情</div>;
-  }
-
-  const rows = Object.entries(entity)
-    .filter(([key, value]) => typeof value !== 'object' && !key.endsWith('_at'))
-    .slice(0, 12);
-  const title = view === 'devices'
-    ? (entity as Device).device_name
-    : view === 'accounts'
-      ? (entity as InternetAccount).account_name
-      : (entity as PhoneNumber).phone_number_masked;
+function DetailPanel({ entity, view, canWrite, onEdit, onDelete }: { entity: AssetEntity | null; view: ViewType; canWrite: boolean; onEdit: () => void; onDelete: () => void }) {
+  if (!entity) return <div className="detail-empty">请选择资产查看详情</div>;
+  const rows = Object.entries(entity).filter(([key, value]) => typeof value !== 'object' && !key.endsWith('_at')).slice(0, 12);
+  const title = view === 'devices' ? (entity as Device).device_name : view === 'accounts' ? (entity as InternetAccount).account_name : (entity as PhoneNumber).phone_number_masked;
 
   return (
     <div>
@@ -201,10 +252,50 @@ function DetailPanel({ entity, view, canWrite, onEdit }: { entity: AssetEntity |
       </div>
       <div className="detail-title">{title}</div>
       <div className="detail-list">
-        {rows.map(([key, value]) => (
-          <div key={key}><span>{key}</span><strong>{String(value ?? '-')}</strong></div>
-        ))}
+        {rows.map(([key, value]) => <div key={key}><span>{key}</span><strong>{String(value ?? '-')}</strong></div>)}
       </div>
+      {canWrite && <button className="danger-button" onClick={onDelete}>注销资产</button>}
     </div>
+  );
+}
+
+function LogPanel({ logs }: { logs: OperationLog[] }) {
+  return (
+    <section className="table-wrap standalone">
+      <h1>操作日志</h1>
+      <table>
+        <thead><tr><th>时间</th><th>操作</th><th>对象类型</th><th>对象 ID</th><th>操作人</th></tr></thead>
+        <tbody>{logs.map((log) => (
+          <tr key={log.id}><td>{formatDate(log.created_at)}</td><td>{log.action_type}</td><td>{log.target_type}</td><td>{log.target_id ?? '-'}</td><td>{log.operator_name ?? '-'}</td></tr>
+        ))}</tbody>
+      </table>
+    </section>
+  );
+}
+
+function RiskPanel({ risks }: { risks: RiskItem[] }) {
+  return (
+    <section className="table-wrap standalone">
+      <h1>风险提醒</h1>
+      <table>
+        <thead><tr><th>等级</th><th>风险标题</th><th>关联资产</th><th>原因</th><th>建议</th><th>检测时间</th></tr></thead>
+        <tbody>{risks.map((risk) => (
+          <tr key={risk.id}><td><StatusBadge value={riskLabel(risk.risk_level)} tone={risk.risk_level} /></td><td>{risk.risk_title}</td><td>{risk.entity_name}</td><td>{risk.risk_reason}</td><td>{risk.suggestion}</td><td>{formatDate(risk.detected_at)}</td></tr>
+        ))}</tbody>
+      </table>
+    </section>
+  );
+}
+
+function SettingsPanel({ meta }: { meta: AssetMeta | null }) {
+  return (
+    <section className="settings-panel">
+      <h1>系统设置</h1>
+      <div className="settings-grid">
+        <div><strong>{meta?.users.length ?? '-'}</strong><span>用户</span></div>
+        <div><strong>{meta?.departments.length ?? '-'}</strong><span>部门</span></div>
+        <div><strong>3</strong><span>角色权限</span></div>
+      </div>
+    </section>
   );
 }

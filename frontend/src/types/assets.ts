@@ -79,6 +79,42 @@ export type Stats = {
   noOwner: number;
 };
 
+export type MetaOption = {
+  id: number;
+  name: string;
+  code?: string;
+  role?: string;
+  department_id?: number | null;
+};
+
+export type AssetMeta = {
+  departments: MetaOption[];
+  users: MetaOption[];
+  devices: MetaOption[];
+  phones: MetaOption[];
+};
+
+export type OperationLog = {
+  id: number;
+  action_type: string;
+  target_type: string;
+  target_id: number | null;
+  operator_name: string | null;
+  created_at: string;
+};
+
+export type RiskItem = {
+  id: string;
+  entity_type: string;
+  entity_id: number;
+  entity_name: string;
+  risk_level: string;
+  risk_title: string;
+  risk_reason: string;
+  suggestion: string;
+  detected_at: string;
+};
+
 export type ListResponse<T> = {
   code: number;
   data: T[];

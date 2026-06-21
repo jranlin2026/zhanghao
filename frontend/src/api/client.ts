@@ -1,4 +1,16 @@
-import type { ApiResponse, Device, InternetAccount, ListResponse, PhoneNumber, Stats, User, ViewType } from '../types/assets';
+import type {
+  ApiResponse,
+  AssetMeta,
+  Device,
+  InternetAccount,
+  ListResponse,
+  OperationLog,
+  PhoneNumber,
+  RiskItem,
+  Stats,
+  User,
+  ViewType,
+} from '../types/assets';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
@@ -25,41 +37,60 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return payload;
 }
 
+function pathForView(view: ViewType) {
+  return view === 'devices' ? '/devices' : view === 'phones' ? '/phone-numbers' : '/internet-accounts';
+}
+
 export const api = {
-  async login(name: string, password: string) {
+  login(name: string, password: string) {
     return request<ApiResponse<LoginResult>>('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ name, password }),
     });
   },
 
-  async profile() {
+  profile() {
     return request<ApiResponse<User>>('/auth/profile');
   },
 
-  async stats() {
+  meta() {
+    return request<ApiResponse<AssetMeta>>('/meta');
+  },
+
+  stats() {
     return request<ApiResponse<Stats>>('/assets/stats');
   },
 
-  async list(view: ViewType, search: string) {
+  list(view: ViewType, search: string) {
     const query = search ? `?search=${encodeURIComponent(search)}` : '';
-    const path = view === 'devices' ? '/devices' : view === 'phones' ? '/phone-numbers' : '/internet-accounts';
-    return request<ListResponse<Device | PhoneNumber | InternetAccount>>(`${path}${query}`);
+    return request<ListResponse<Device | PhoneNumber | InternetAccount>>(`${pathForView(view)}${query}`);
   },
 
-  async create(view: ViewType, data: Record<string, unknown>) {
-    const path = view === 'devices' ? '/devices' : view === 'phones' ? '/phone-numbers' : '/internet-accounts';
-    return request<ApiResponse<Device | PhoneNumber | InternetAccount>>(path, {
+  logs() {
+    return request<ListResponse<OperationLog>>('/operation-logs');
+  },
+
+  risks() {
+    return request<ListResponse<RiskItem>>('/risks');
+  },
+
+  create(view: ViewType, data: Record<string, unknown>) {
+    return request<ApiResponse<Device | PhoneNumber | InternetAccount>>(pathForView(view), {
       method: 'POST',
       body: JSON.stringify(data),
     });
   },
 
-  async update(view: ViewType, id: number, data: Record<string, unknown>) {
-    const path = view === 'devices' ? '/devices' : view === 'phones' ? '/phone-numbers' : '/internet-accounts';
-    return request<ApiResponse<Device | PhoneNumber | InternetAccount>>(`${path}/${id}`, {
+  update(view: ViewType, id: number, data: Record<string, unknown>) {
+    return request<ApiResponse<Device | PhoneNumber | InternetAccount>>(`${pathForView(view)}/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
+    });
+  },
+
+  remove(view: ViewType, id: number) {
+    return request<ApiResponse<boolean>>(`${pathForView(view)}/${id}`, {
+      method: 'DELETE',
     });
   },
 };

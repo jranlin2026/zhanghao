@@ -136,6 +136,26 @@ function accountAccessShape(account: any) {
 }
 
 export const assetsService = {
+  async meta(user: Express.Request['user']) {
+    const [departments, users, devices, phones] = await Promise.all([
+      prisma.department.findMany({ orderBy: { id: 'asc' } }),
+      prisma.user.findMany({ where: { status: 'active' }, orderBy: { id: 'asc' } }),
+      prisma.device.findMany({ where: { deleted_at: null }, orderBy: { id: 'asc' } }),
+      prisma.phoneNumber.findMany({ where: { deleted_at: null }, include: { device: true }, orderBy: { id: 'asc' } }),
+    ]);
+    const accessUser = userAccess(user);
+    return {
+      departments: departments.map((item) => ({ id: item.id, name: item.name })),
+      users: users.map((item) => ({ id: item.id, name: item.name, role: item.role, department_id: item.department_id })),
+      devices: devices
+        .filter((device) => canReadEntity(accessUser, deviceAccessShape(device)))
+        .map((item) => ({ id: item.id, name: item.device_name, code: item.device_code })),
+      phones: phones
+        .filter((phone) => canReadEntity(accessUser, phoneAccessShape(phone)))
+        .map((item) => ({ id: item.id, name: `${maskPhoneNumber(item.phone_number)} / ${item.device.device_name}` })),
+    };
+  },
+
   async stats(user: Express.Request['user']) {
     const accessUser = userAccess(user);
     const [devices, phones, accounts] = await Promise.all([
@@ -383,5 +403,56 @@ export const assetsService = {
       })),
       query,
     );
+  },
+
+  async risks(user: Express.Request['user'], query: Query) {
+    const [devices, phones, accounts] = await Promise.all([
+      prisma.device.findMany({ where: { deleted_at: null }, include: deviceInclude() }),
+      prisma.phoneNumber.findMany({ where: { deleted_at: null }, include: phoneInclude() }),
+      prisma.internetAccount.findMany({ where: { deleted_at: null }, include: accountInclude() }),
+    ]);
+    const accessUser = userAccess(user);
+    const riskRows = [
+      ...devices
+        .filter((device) => canReadEntity(accessUser, deviceAccessShape(device)) && device.risk_level !== 'none')
+        .map((device) => ({
+          id: `device-${device.id}`,
+          entity_type: 'device',
+          entity_id: device.id,
+          entity_name: device.device_name,
+          risk_level: device.risk_level,
+          risk_title: device.risk_level === 'high' ? '设备高风险' : '设备需关注',
+          risk_reason: !device.owner_user_id ? '设备缺少负责人' : '设备绑定关系不完整',
+          suggestion: '补充负责人或绑定手机号后重新保存资产',
+          detected_at: device.updated_at,
+        })),
+      ...phones
+        .filter((phone) => canReadEntity(accessUser, phoneAccessShape(phone)) && phone.risk_level !== 'none')
+        .map((phone) => ({
+          id: `phone-${phone.id}`,
+          entity_type: 'phone_number',
+          entity_id: phone.id,
+          entity_name: maskPhoneNumber(phone.phone_number),
+          risk_level: phone.risk_level,
+          risk_title: phone.risk_level === 'high' ? '手机号高风险' : '手机号需关注',
+          risk_reason: !phone.owner_user_id ? '手机号缺少负责人' : '手机号未绑定互联网账号',
+          suggestion: '补充负责人或绑定互联网账号',
+          detected_at: phone.updated_at,
+        })),
+      ...accounts
+        .filter((account) => canReadEntity(accessUser, accountAccessShape(account)) && account.risk_level !== 'none')
+        .map((account) => ({
+          id: `account-${account.id}`,
+          entity_type: 'internet_account',
+          entity_id: account.id,
+          entity_name: account.account_name,
+          risk_level: account.risk_level,
+          risk_title: '账号高风险',
+          risk_reason: !account.owner_user_id ? '账号缺少负责人' : '账号权限或状态异常',
+          suggestion: '补充负责人或检查账号状态',
+          detected_at: account.updated_at,
+        })),
+    ];
+    return paginate(riskRows, query);
   },
 };
