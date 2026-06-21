@@ -9,6 +9,7 @@ function App() {
   const [password, setPassword] = useState('admin123');
   const [error, setError] = useState('');
   const [booting, setBooting] = useState(true);
+  const [loggingIn, setLoggingIn] = useState(false);
 
   useEffect(() => {
     if (!localStorage.getItem('asset_token')) {
@@ -24,12 +25,15 @@ function App() {
   async function handleLogin(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError('');
+    setLoggingIn(true);
     try {
       const response = await api.login(name, password);
       localStorage.setItem('asset_token', response.data.token);
       setUser(response.data.user);
     } catch (err) {
       setError(err instanceof Error ? err.message : '登录失败');
+    } finally {
+      setLoggingIn(false);
     }
   }
 
@@ -46,7 +50,7 @@ function App() {
           <label><span>用户名</span><input value={name} onChange={(event) => setName(event.target.value)} /></label>
           <label><span>密码</span><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></label>
           {error && <div className="error-banner">{error}</div>}
-          <button className="primary-button" type="submit">登录</button>
+          <button className="primary-button" type="submit" disabled={loggingIn}>{loggingIn ? '登录中...' : '登录'}</button>
         </form>
       </main>
     );
