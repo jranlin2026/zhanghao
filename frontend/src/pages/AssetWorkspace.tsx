@@ -352,15 +352,32 @@ function DetailPanel({ entity, view, canWrite, onEdit, onDelete }: { entity: Ass
 }
 
 function LogPanel({ logs }: { logs: OperationLog[] }) {
+  const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
+  const selectedLog = logs.find((log) => log.id === selectedLogId) ?? logs[0] ?? null;
+
   return (
     <section className="table-wrap standalone">
       <h1>操作日志</h1>
       <table>
-        <thead><tr><th>时间</th><th>操作</th><th>对象类型</th><th>对象 ID</th><th>操作人</th></tr></thead>
+        <thead><tr><th>时间</th><th>操作</th><th>对象类型</th><th>对象 ID</th><th>操作人</th><th>详情</th></tr></thead>
         <tbody>{logs.map((log) => (
-          <tr key={log.id}><td>{formatDate(log.created_at)}</td><td>{log.action_type}</td><td>{log.target_type}</td><td>{log.target_id ?? '-'}</td><td>{log.operator_name ?? '-'}</td></tr>
+          <tr key={log.id} className={selectedLog?.id === log.id ? 'selected' : ''} onClick={() => setSelectedLogId(log.id)}>
+            <td>{formatDate(log.created_at)}</td><td>{log.action_type}</td><td>{log.target_type}</td><td>{log.target_id ?? '-'}</td><td>{log.operator_name ?? '-'}</td><td><button className="ghost-button">查看</button></td>
+          </tr>
         ))}</tbody>
       </table>
+      {selectedLog && (
+        <div className="log-detail">
+          <div>
+            <strong>变更前</strong>
+            <pre>{JSON.stringify(selectedLog.before_data ?? null, null, 2)}</pre>
+          </div>
+          <div>
+            <strong>变更后</strong>
+            <pre>{JSON.stringify(selectedLog.after_data ?? null, null, 2)}</pre>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

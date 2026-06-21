@@ -100,6 +100,8 @@ export type OperationLog = {
   target_type: string;
   target_id: number | null;
   operator_name: string | null;
+  before_data: unknown | null;
+  after_data: unknown | null;
   created_at: string;
 };
 
