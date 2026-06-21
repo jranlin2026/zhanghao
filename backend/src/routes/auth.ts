@@ -1,12 +1,19 @@
 import type { Request, Response } from 'express';
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { authMiddleware } from '../middleware/auth';
 import { authService } from '../services/authService';
 import { asyncHandler } from './asyncHandler';
 
 const router = Router();
 
-router.post('/login', asyncHandler(async (req: Request, res: Response) => {
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { code: 429, data: null, message: '登录尝试过于频繁，请稍后再试' },
+});
+
+router.post('/login', loginLimiter, asyncHandler(async (req: Request, res: Response) => {
   try {
     const { name, password } = req.body;
 
@@ -18,7 +25,7 @@ router.post('/login', asyncHandler(async (req: Request, res: Response) => {
     return res.json({ code: 200, data: result, message: '登录成功' });
   } catch (err) {
     const message = err instanceof Error ? err.message : '登录失败';
-    const statusCode = ['用户不存在', '密码错误'].includes(message) ? 401 : 500;
+    const statusCode = message === '用户名或密码错误' ? 401 : 500;
     return res.status(statusCode).json({ code: statusCode, data: null, message });
   }
 }));
