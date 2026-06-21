@@ -2,6 +2,7 @@ export function parseAllowedOrigins(frontendUrl: string): string[] {
   return frontendUrl
     .split(',')
     .map((origin) => origin.trim())
+    .map((origin) => origin.replace(/\/+$/, ''))
     .filter(Boolean);
 }
 

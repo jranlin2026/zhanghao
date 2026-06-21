@@ -3,7 +3,7 @@ import { isAllowedCorsOrigin, parseAllowedOrigins } from '../config/cors';
 
 describe('cors origin configuration', () => {
   it('parses comma separated frontend origins', () => {
-    expect(parseAllowedOrigins('https://a.example.com, https://b.example.com ,,')).toEqual([
+    expect(parseAllowedOrigins('https://a.example.com/, https://b.example.com ,,')).toEqual([
       'https://a.example.com',
       'https://b.example.com',
     ]);
