@@ -4,6 +4,15 @@
 
 ## 本地开发
 
+也可以在根目录使用统一命令：
+
+```bash
+npm run build
+npm test
+npm run dev:backend
+npm run dev:frontend
+```
+
 后端：
 
 ```bash
