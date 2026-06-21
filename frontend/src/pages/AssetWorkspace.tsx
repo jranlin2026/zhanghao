@@ -1,0 +1,210 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { api } from '../api/client';
+import { AssetModal } from '../components/AssetModal';
+import type { AssetEntity, Device, InternetAccount, PhoneNumber, Stats, User, ViewType } from '../types/assets';
+
+type Props = {
+  user: User;
+  onLogout: () => void;
+};
+
+const tabs: Array<{ id: ViewType; label: string }> = [
+  { id: 'devices', label: '设备列表' },
+  { id: 'phones', label: '手机号视图' },
+  { id: 'accounts', label: '互联网账号视图' },
+];
+
+const navItems = ['账号资产', '操作日志', '风险提醒', '系统设置'];
+
+function riskLabel(level: string) {
+  return level === 'high' ? '高风险' : level === 'medium' ? '中风险' : level === 'low' ? '低风险' : '无风险';
+}
+
+function StatusBadge({ value, tone = 'neutral' }: { value: string; tone?: string }) {
+  return <span className={`badge ${tone}`}>{value}</span>;
+}
+
+function formatDate(value: string) {
+  return new Date(value).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+}
+
+export function AssetWorkspace({ user, onLogout }: Props) {
+  const [view, setView] = useState<ViewType>('devices');
+  const [search, setSearch] = useState('');
+  const [items, setItems] = useState<AssetEntity[]>([]);
+  const [selected, setSelected] = useState<AssetEntity | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [modalEntity, setModalEntity] = useState<AssetEntity | null | undefined>(undefined);
+
+  const canWrite = user.roles.includes('admin');
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const [listResponse, statsResponse] = await Promise.all([api.list(view, search), api.stats()]);
+      setItems(listResponse.data);
+      setStats(statsResponse.data);
+      setSelected((current) => {
+        if (!current) return listResponse.data[0] ?? null;
+        return listResponse.data.find((item) => item.id === current.id) ?? listResponse.data[0] ?? null;
+      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '加载失败');
+    } finally {
+      setLoading(false);
+    }
+  }, [search, view]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const title = useMemo(() => tabs.find((tab) => tab.id === view)?.label ?? '', [view]);
+
+  async function submitModal(values: Record<string, unknown>) {
+    if (modalEntity === undefined) return;
+    if (modalEntity) {
+      await api.update(view, modalEntity.id, values);
+    } else {
+      await api.create(view, values);
+    }
+    setModalEntity(undefined);
+    await load();
+  }
+
+  return (
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="brand">账号资产</div>
+        <nav>
+          {navItems.map((item, index) => (
+            <button key={item} className={index === 0 ? 'active' : ''}>{item}</button>
+          ))}
+        </nav>
+      </aside>
+
+      <main className="main-panel">
+        <header className="topbar">
+          <div>
+            <span>首页</span>
+            <strong>账号资产</strong>
+          </div>
+          <div className="user-box">
+            <span>{user.name}</span>
+            <span>{user.role}</span>
+            <button onClick={onLogout}>退出</button>
+          </div>
+        </header>
+
+        <section className="content-toolbar">
+          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="搜索设备名称、IMEI、手机号、账号名称..." />
+          {canWrite && <button className="primary-button" onClick={() => setModalEntity(null)}>新增</button>}
+        </section>
+
+        <section className="kpi-grid">
+          <div><strong>{stats?.devices ?? '-'}</strong><span>设备总数</span></div>
+          <div><strong>{stats?.phones ?? '-'}</strong><span>手机号</span></div>
+          <div><strong>{stats?.accounts ?? '-'}</strong><span>互联网账号</span></div>
+          <div><strong>{stats?.highRisk ?? '-'}</strong><span>高风险</span></div>
+          <div><strong>{stats?.noOwner ?? '-'}</strong><span>无负责人</span></div>
+        </section>
+
+        <section className="tabs">
+          {tabs.map((tab) => (
+            <button key={tab.id} className={view === tab.id ? 'active' : ''} onClick={() => { setView(tab.id); setSelected(null); }}>
+              {tab.label}
+            </button>
+          ))}
+        </section>
+
+        {error && <div className="error-banner">{error}</div>}
+        <section className="table-wrap">
+          <h1>{title}</h1>
+          {loading ? <div className="empty">加载中...</div> : <AssetTable view={view} items={items} selected={selected} onSelect={setSelected} />}
+        </section>
+      </main>
+
+      <aside className="detail-panel">
+        <DetailPanel entity={selected} view={view} canWrite={canWrite} onEdit={() => selected && setModalEntity(selected)} />
+      </aside>
+
+      {modalEntity !== undefined && <AssetModal view={view} entity={modalEntity} onClose={() => setModalEntity(undefined)} onSubmit={submitModal} />}
+    </div>
+  );
+}
+
+function AssetTable({ view, items, selected, onSelect }: { view: ViewType; items: AssetEntity[]; selected: AssetEntity | null; onSelect: (entity: AssetEntity) => void }) {
+  if (items.length === 0) {
+    return <div className="empty">暂无数据</div>;
+  }
+
+  if (view === 'devices') {
+    return (
+      <table>
+        <thead><tr><th>设备编号</th><th>设备名称</th><th>品牌型号</th><th>IMEI</th><th>部门</th><th>负责人</th><th>状态</th><th>风险</th><th>更新</th></tr></thead>
+        <tbody>{(items as Device[]).map((item) => (
+          <tr key={item.id} className={selected?.id === item.id ? 'selected' : ''} onClick={() => onSelect(item)}>
+            <td>{item.device_code}</td><td>{item.device_name}</td><td>{item.brand_model}</td><td>{item.imei}</td><td>{item.department_name}</td><td>{item.owner_name ?? '-'}</td><td><StatusBadge value={item.status} /></td><td><StatusBadge value={riskLabel(item.risk_level)} tone={item.risk_level} /></td><td>{formatDate(item.updated_at)}</td>
+          </tr>
+        ))}</tbody>
+      </table>
+    );
+  }
+
+  if (view === 'phones') {
+    return (
+      <table>
+        <thead><tr><th>手机号</th><th>运营商</th><th>所属设备</th><th>卡槽</th><th>负责人</th><th>月费</th><th>状态</th><th>风险</th><th>更新</th></tr></thead>
+        <tbody>{(items as PhoneNumber[]).map((item) => (
+          <tr key={item.id} className={selected?.id === item.id ? 'selected' : ''} onClick={() => onSelect(item)}>
+            <td>{item.phone_number_masked}</td><td>{item.carrier}</td><td>{item.device_name}</td><td>{item.slot_type}</td><td>{item.owner_name ?? '-'}</td><td>{item.monthly_fee ?? '-'}</td><td><StatusBadge value={item.status} /></td><td><StatusBadge value={riskLabel(item.risk_level)} tone={item.risk_level} /></td><td>{formatDate(item.updated_at)}</td>
+          </tr>
+        ))}</tbody>
+      </table>
+    );
+  }
+
+  return (
+    <table>
+      <thead><tr><th>账号编号</th><th>平台</th><th>账号名称</th><th>登录账号</th><th>绑定手机号</th><th>负责人</th><th>权限</th><th>状态</th><th>风险</th></tr></thead>
+      <tbody>{(items as InternetAccount[]).map((item) => (
+        <tr key={item.id} className={selected?.id === item.id ? 'selected' : ''} onClick={() => onSelect(item)}>
+          <td>{item.account_code}</td><td>{item.platform}</td><td>{item.account_name}</td><td>{item.login_account_masked}</td><td>{item.bind_phone_masked}</td><td>{item.owner_name ?? '-'}</td><td><StatusBadge value={item.permission_status} /></td><td><StatusBadge value={item.status} /></td><td><StatusBadge value={riskLabel(item.risk_level)} tone={item.risk_level} /></td>
+        </tr>
+      ))}</tbody>
+    </table>
+  );
+}
+
+function DetailPanel({ entity, view, canWrite, onEdit }: { entity: AssetEntity | null; view: ViewType; canWrite: boolean; onEdit: () => void }) {
+  if (!entity) {
+    return <div className="detail-empty">请选择设备查看详情</div>;
+  }
+
+  const rows = Object.entries(entity)
+    .filter(([key, value]) => typeof value !== 'object' && !key.endsWith('_at'))
+    .slice(0, 12);
+  const title = view === 'devices'
+    ? (entity as Device).device_name
+    : view === 'accounts'
+      ? (entity as InternetAccount).account_name
+      : (entity as PhoneNumber).phone_number_masked;
+
+  return (
+    <div>
+      <div className="detail-header">
+        <span>{view === 'devices' ? '设备详情' : view === 'phones' ? '手机号详情' : '账号详情'}</span>
+        {canWrite && <button className="ghost-button" onClick={onEdit}>编辑</button>}
+      </div>
+      <div className="detail-title">{title}</div>
+      <div className="detail-list">
+        {rows.map(([key, value]) => (
+          <div key={key}><span>{key}</span><strong>{String(value ?? '-')}</strong></div>
+        ))}
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,133 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int      @id @default(autoincrement())
+  name          String
+  email         String?  @unique
+  phone         String?
+  password_hash String
+  role          String   @default("employee")
+  department_id Int?
+  status        String   @default("active")
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  department Department? @relation(fields: [department_id], references: [id])
+  owned_devices Device[] @relation("DeviceOwner")
+  used_devices  Device[] @relation("DeviceCurrentUser")
+  owned_phones  PhoneNumber[] @relation("PhoneOwner")
+  owned_accounts InternetAccount[] @relation("AccountOwner")
+  used_accounts  InternetAccount[] @relation("AccountCurrentUser")
+  operation_logs OperationLog[]
+}
+
+model Department {
+  id              Int      @id @default(autoincrement())
+  name            String   @unique
+  manager_user_id Int?
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  users    User[]
+  devices  Device[]
+  accounts InternetAccount[]
+}
+
+model Device {
+  id              Int       @id @default(autoincrement())
+  device_code     String    @unique
+  device_name     String
+  brand_model     String
+  imei            String    @unique
+  sim_type        String
+  owner_subject   String
+  department_id   Int?
+  owner_user_id   Int?
+  current_user_id Int?
+  status          String    @default("使用中")
+  risk_level      String    @default("none")
+  remark          String?
+  deleted_at      DateTime?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+
+  department   Department? @relation(fields: [department_id], references: [id])
+  owner        User?       @relation("DeviceOwner", fields: [owner_user_id], references: [id])
+  current_user User?       @relation("DeviceCurrentUser", fields: [current_user_id], references: [id])
+  phone_numbers PhoneNumber[]
+}
+
+model PhoneNumber {
+  id             Int      @id @default(autoincrement())
+  device_id      Int
+  slot_type      String
+  phone_number   String
+  carrier        String
+  is_primary     Boolean  @default(false)
+  monthly_fee    Decimal? @db.Decimal(10, 2)
+  plan_type      String?
+  owner_user_id  Int?
+  status         String   @default("使用中")
+  risk_level     String   @default("none")
+  remark         String?
+  deleted_at     DateTime?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  device   Device @relation(fields: [device_id], references: [id])
+  owner    User?  @relation("PhoneOwner", fields: [owner_user_id], references: [id])
+  internet_accounts InternetAccount[]
+}
+
+model InternetAccount {
+  id                Int      @id @default(autoincrement())
+  phone_number_id   Int
+  account_code      String   @unique
+  platform          String
+  account_name      String
+  login_account     String
+  bind_email        String?
+  owner_subject     String
+  purpose           String?
+  service_provider  String?
+  monthly_fee       Decimal? @db.Decimal(10, 2)
+  expire_at         DateTime?
+  department_id     Int?
+  owner_user_id     Int?
+  current_user_id   Int?
+  permission_status String   @default("正常")
+  status            String   @default("使用中")
+  risk_level        String   @default("none")
+  remark            String?
+  deleted_at        DateTime?
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  phone_number PhoneNumber @relation(fields: [phone_number_id], references: [id])
+  department   Department? @relation(fields: [department_id], references: [id])
+  owner        User?       @relation("AccountOwner", fields: [owner_user_id], references: [id])
+  current_user User?       @relation("AccountCurrentUser", fields: [current_user_id], references: [id])
+}
+
+model OperationLog {
+  id          Int      @id @default(autoincrement())
+  operator_id Int?
+  action_type String
+  target_type String
+  target_id   Int?
+  before_data Json?
+  after_data  Json?
+  ip_address  String?
+  device_info String?
+  remark      String?
+  created_at  DateTime @default(now())
+
+  operator User? @relation(fields: [operator_id], references: [id])
+}

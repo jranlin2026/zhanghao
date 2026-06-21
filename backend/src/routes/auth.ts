@@ -1,10 +1,11 @@
 import type { Request, Response } from 'express';
 import { Router } from 'express';
 import { authService } from '../services/authService';
+import { asyncHandler } from './asyncHandler';
 
 const router = Router();
 
-router.post('/login', async (req: Request, res: Response) => {
+router.post('/login', asyncHandler(async (req: Request, res: Response) => {
   try {
     const { name, password } = req.body;
 
@@ -19,9 +20,9 @@ router.post('/login', async (req: Request, res: Response) => {
     const statusCode = ['用户不存在', '密码错误'].includes(message) ? 401 : 500;
     return res.status(statusCode).json({ code: statusCode, data: null, message });
   }
-});
+}));
 
-router.get('/profile', async (req: Request, res: Response) => {
+router.get('/profile', asyncHandler(async (req: Request, res: Response) => {
   try {
     if (!req.user?.id) {
       return res.status(401).json({ code: 401, data: null, message: '未登录' });
@@ -33,6 +34,6 @@ router.get('/profile', async (req: Request, res: Response) => {
     const message = err instanceof Error ? err.message : '获取用户信息失败';
     return res.status(500).json({ code: 500, data: null, message });
   }
-});
+}));
 
 export default router;
