@@ -31,7 +31,13 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     },
   });
 
-  const payload = await response.json();
+  const text = await response.text();
+  let payload: { message?: string } & T;
+  try {
+    payload = text ? JSON.parse(text) : { message: response.statusText };
+  } catch {
+    payload = { message: text || response.statusText } as { message?: string } & T;
+  }
   if (!response.ok) {
     throw new Error(payload.message || '请求失败');
   }
