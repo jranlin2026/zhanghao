@@ -90,7 +90,9 @@ export function AssetWorkspace({ user, onLogout }: Props) {
   const [items, setItems] = useState<AssetEntity[]>([]);
   const [total, setTotal] = useState(0);
   const [logs, setLogs] = useState<OperationLog[]>([]);
+  const [logTotal, setLogTotal] = useState(0);
   const [risks, setRisks] = useState<RiskItem[]>([]);
+  const [riskTotal, setRiskTotal] = useState(0);
   const [selected, setSelected] = useState<AssetEntity | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [meta, setMeta] = useState<AssetMeta | null>(null);
@@ -126,10 +128,12 @@ export function AssetWorkspace({ user, onLogout }: Props) {
     if (section === 'logs') {
       const response = await api.logs();
       setLogs(response.data);
+      setLogTotal(response.pagination.total);
     }
     if (section === 'risks') {
       const response = await api.risks();
       setRisks(response.data);
+      setRiskTotal(response.pagination.total);
     }
     if (section === 'settings') {
       const response = await api.meta();
@@ -272,8 +276,8 @@ export function AssetWorkspace({ user, onLogout }: Props) {
           </>
         )}
 
-        {section === 'logs' && <LogPanel logs={logs} />}
-        {section === 'risks' && <RiskPanel risks={risks} />}
+        {section === 'logs' && <LogPanel logs={logs} total={logTotal} />}
+        {section === 'risks' && <RiskPanel risks={risks} total={riskTotal} />}
         {section === 'settings' && <SettingsPanel meta={meta} />}
       </main>
 
@@ -351,7 +355,7 @@ function DetailPanel({ entity, view, canWrite, onEdit, onDelete }: { entity: Ass
   );
 }
 
-function LogPanel({ logs }: { logs: OperationLog[] }) {
+function LogPanel({ logs, total }: { logs: OperationLog[]; total: number }) {
   const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
   const selectedLog = logs.find((log) => log.id === selectedLogId) ?? logs[0] ?? null;
 
@@ -378,11 +382,12 @@ function LogPanel({ logs }: { logs: OperationLog[] }) {
           </div>
         </div>
       )}
+      <div className="table-footer">共 {total} 条</div>
     </section>
   );
 }
 
-function RiskPanel({ risks }: { risks: RiskItem[] }) {
+function RiskPanel({ risks, total }: { risks: RiskItem[]; total: number }) {
   return (
     <section className="table-wrap standalone">
       <h1>风险提醒</h1>
@@ -392,6 +397,7 @@ function RiskPanel({ risks }: { risks: RiskItem[] }) {
           <tr key={risk.id}><td><StatusBadge value={riskLabel(risk.risk_level)} tone={risk.risk_level} /></td><td>{risk.risk_title}</td><td>{risk.entity_name}</td><td>{risk.risk_reason}</td><td>{risk.suggestion}</td><td>{formatDate(risk.detected_at)}</td></tr>
         ))}</tbody>
       </table>
+      <div className="table-footer">共 {total} 条</div>
     </section>
   );
 }
