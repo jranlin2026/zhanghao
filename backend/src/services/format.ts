@@ -19,7 +19,7 @@ export function maskLoginAccount(value: string | null | undefined): string {
 }
 
 export function normalizeDecimal(value: unknown): number | null {
-  if (value === null || value === undefined) {
+  if (value === null || value === undefined || String(value).trim() === '') {
     return null;
   }
   const numberValue = Number(value);
