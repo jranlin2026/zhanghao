@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { isAllowedCorsOrigin } from './config/cors';
 import { prisma } from './config/db';
 import { env } from './config/env';
 import { errorHandler } from './middleware/errorHandler';
@@ -14,8 +15,7 @@ app.use(helmet({ contentSecurityPolicy: false }));
 app.use(
   cors({
     origin: (origin, callback) => {
-      const isLocalDevOrigin = origin ? /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(origin) : true;
-      if (origin === env.FRONTEND_URL || (env.isDev && isLocalDevOrigin)) {
+      if (isAllowedCorsOrigin(origin, env.FRONTEND_URL, env.isDev)) {
         callback(null, true);
         return;
       }
