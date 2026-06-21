@@ -1,0 +1,2280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>公司账号资产管理系统 V1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+/* ===== CSS Variables (Design Tokens) ===== */
+:root {
+  --color-bg-primary: #F7F8FA;
+  --color-bg-secondary: #F0F1F3;
+  --color-surface: #FFFFFF;
+  --color-surface-hover: #F3F4F6;
+  --color-surface-elevated: #FFFFFF;
+  --color-primary: #2B6CB0;
+  --color-primary-hover: #1A4F8A;
+  --color-primary-active: #0F3A6B;
+  --color-primary-subtle: #EBF1FA;
+  --color-primary-muted: rgba(43, 108, 176, 0.12);
+  --color-gray-50: #F9FAFB;
+  --color-gray-100: #F3F4F6;
+  --color-gray-200: #E5E7EB;
+  --color-gray-300: #D1D5DB;
+  --color-gray-400: #9CA3AF;
+  --color-gray-500: #6B7280;
+  --color-gray-600: #4B5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1F2937;
+  --color-gray-900: #111827;
+  --color-danger: #DC2626;
+  --color-danger-bg: #FEF2F2;
+  --color-warning: #D97706;
+  --color-warning-bg: #FFFBEB;
+  --color-success: #059669;
+  --color-success-bg: #ECFDF5;
+  --color-idle: #9CA3AF;
+  --color-idle-bg: #F3F4F6;
+  --color-info: #2563EB;
+  --color-info-bg: #EFF6FF;
+  --color-masked-bg: #F3F4F6;
+  --color-masked-text: #9CA3AF;
+  --color-masked-border: #E5E7EB;
+  --color-revealed-indicator: #DC2626;
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #6B7280;
+  --color-text-tertiary: #9CA3AF;
+  --color-text-on-primary: #FFFFFF;
+  --color-text-link: #2B6CB0;
+  --color-border: #E5E7EB;
+  --color-border-strong: #D1D5DB;
+  --color-divider: #F0F1F3;
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 20px;
+  --space-xl: 24px;
+  --space-2xl: 32px;
+  --space-3xl: 48px;
+  --space-4xl: 64px;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Menlo', monospace;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-pill: 16px;
+  --shadow-none: none;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
+  --shadow-xl: 0 20px 40px rgba(0,0,0,0.15);
+  --shadow-sticky: 0 1px 3px rgba(0,0,0,0.08);
+  --sidebar-width: 220px;
+  --panel-width: 520px;
+  --header-height: 52px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; }
+body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-gray-300); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-gray-400); }
+
+/* ===== LAYOUT ===== */
+.app-container { display: flex; flex-direction: column; height: 100vh; }
+
+.header {
+  height: var(--header-height);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-xl);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+}
+.header-left { display: flex; align-items: center; gap: var(--space-sm); }
+.header-left .breadcrumb { font-size: 13px; color: var(--color-text-secondary); }
+.header-left .breadcrumb span { color: var(--color-text-primary); font-weight: 500; }
+.header-left .breadcrumb i { font-size: 10px; color: var(--color-gray-400); margin: 0 6px; }
+.header-right { display: flex; align-items: center; gap: var(--space-md); }
+.header-right .role-select {
+  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  color: var(--color-text-secondary);
+  background: var(--color-surface);
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+.header-right .user-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px; font-weight: 600;
+  cursor: pointer;
+}
+.header-right .logout-btn {
+  font-size: 13px; color: var(--color-text-secondary);
+  cursor: pointer; background: none; border: none;
+  font-family: var(--font-sans);
+  display: flex; align-items: center; gap: 4px;
+  transition: color 0.15s;
+}
+.header-right .logout-btn:hover { color: var(--color-danger); }
+
+.body-wrapper {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--color-bg-secondary);
+  border-right: 1px solid var(--color-border);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.sidebar-logo {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-md);
+  gap: var(--space-sm);
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+.sidebar-logo i { color: var(--color-primary); font-size: 20px; }
+.sidebar-nav { padding: var(--space-xs); flex: 1; }
+.nav-item {
+  display: flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  gap: var(--space-sm);
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  transition: all 0.1s;
+  text-decoration: none;
+  margin-bottom: 2px;
+}
+.nav-item i { width: 18px; font-size: 15px; color: var(--color-gray-400); flex-shrink: 0; }
+.nav-item:hover { background: var(--color-surface-hover); color: var(--color-text-primary); }
+.nav-item:hover i { color: var(--color-gray-500); }
+.nav-item.active {
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+.nav-item.active i { color: var(--color-primary); }
+.nav-item.disabled { opacity: 0.4; cursor: not-allowed; }
+.nav-item.disabled:hover { background: transparent; color: var(--color-text-secondary); }
+.nav-item.disabled:hover i { color: var(--color-gray-400); }
+.nav-item .badge-v2 {
+  font-size: 10px;
+  background: var(--color-gray-200);
+  color: var(--color-gray-500);
+  padding: 1px 6px;
+  border-radius: 8px;
+  margin-left: auto;
+  font-weight: 500;
+}
+
+/* Main Content */
+.main-content {
+  flex: 1;
+  min-width: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background: var(--color-bg-primary);
+}
+.page-section { display: none; padding: var(--space-lg) var(--space-xl); min-height: 100%; }
+.page-section.active { display: block; }
+
+/* Right Panel */
+.right-panel {
+  width: var(--panel-width);
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  flex-shrink: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-header {
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+}
+.panel-header .panel-breadcrumb { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.panel-header .panel-breadcrumb .crumb-link { color: var(--color-text-link); cursor: pointer; }
+.panel-header .panel-breadcrumb .crumb-link:hover { text-decoration: underline; }
+.panel-header .panel-breadcrumb .crumb-sep { font-size: 10px; color: var(--color-gray-400); }
+.panel-header .panel-breadcrumb .crumb-current { color: var(--color-text-primary); font-weight: 500; }
+.panel-header .panel-title-row { display: flex; align-items: center; justify-content: space-between; }
+.panel-header .panel-title-row h3 { font-size: 16px; font-weight: 600; }
+.panel-body { padding: var(--space-md) var(--space-lg); flex: 1; overflow-y: auto; }
+
+/* ===== COMMON COMPONENTS ===== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+.badge-success { background: var(--color-success-bg); color: var(--color-success); }
+.badge-warning { background: var(--color-warning-bg); color: var(--color-warning); }
+.badge-danger { background: var(--color-danger-bg); color: var(--color-danger); }
+.badge-idle { background: var(--color-idle-bg); color: var(--color-idle); }
+.badge-info { background: var(--color-info-bg); color: var(--color-info); }
+.badge-primary { background: var(--color-primary-subtle); color: var(--color-primary); }
+
+.risk-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 4px; }
+.risk-dot.high { background: var(--color-danger); }
+.risk-dot.mid { background: var(--color-warning); }
+.risk-dot.low { background: var(--color-idle); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: var(--radius-md);
+  font-size: 13px; font-weight: 500; font-family: var(--font-sans);
+  cursor: pointer; border: 1px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-primary { background: var(--color-primary); color: #fff; border-color: var(--color-primary); }
+.btn-primary:hover { background: var(--color-primary-hover); }
+.btn-secondary { background: var(--color-surface); color: var(--color-text-secondary); border-color: var(--color-border); }
+.btn-secondary:hover { background: var(--color-gray-50); border-color: var(--color-gray-300); color: var(--color-text-primary); }
+.btn-ghost { background: transparent; color: var(--color-text-link); border-color: transparent; padding: 4px 8px; }
+.btn-ghost:hover { background: var(--color-primary-subtle); }
+.btn-danger { color: var(--color-danger); border-color: var(--color-danger); }
+.btn-danger:hover { background: var(--color-danger-bg); }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-icon { width: 32px; height: 32px; padding: 0; justify-content: center; border-radius: var(--radius-md); }
+
+/* Form inputs */
+.input {
+  height: 36px; padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 13px; font-family: var(--font-sans);
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  transition: border-color 0.15s, box-shadow 0.15s;
+  outline: none;
+}
+.input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-muted); }
+.input::placeholder { color: var(--color-text-tertiary); }
+.select { height: 36px; padding: 0 28px 0 12px; border: 1px solid var(--color-border); border-radius: var(--radius-md); font-size: 13px; font-family: var(--font-sans); color: var(--color-text-primary); background: var(--color-surface); cursor: pointer; outline: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239CA3AF' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+
+/* ===== ACCOUNT ASSET PAGE ===== */
+.asset-top-bar { display: flex; flex-direction: column; gap: var(--space-sm); margin-bottom: var(--space-md); }
+.search-row { display: flex; align-items: center; gap: var(--space-sm); }
+.search-box {
+  position: relative; flex: 1; max-width: 480px;
+}
+.search-box i {
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  color: var(--color-gray-400); font-size: 14px;
+}
+.search-box input {
+  width: 100%; height: 36px; padding: 0 36px 0 36px;
+  border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  font-size: 13px; font-family: var(--font-sans);
+  color: var(--color-text-primary); background: var(--color-surface);
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.search-box input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-muted); }
+.search-box input::placeholder { color: var(--color-text-tertiary); }
+.search-box .search-clear {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; color: var(--color-gray-400); cursor: pointer; font-size: 14px;
+  display: none;
+}
+.search-box .search-clear.visible { display: block; }
+
+.search-actions { display: flex; gap: var(--space-xs); margin-left: auto; }
+
+/* KPI */
+.kpi-bar {
+  display: flex; gap: var(--space-sm);
+}
+.kpi-card {
+  flex: 1; background: var(--color-surface);
+  border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  padding: 12px 16px;
+  display: flex; gap: var(--space-sm); align-items: center;
+  cursor: pointer; transition: box-shadow 0.15s;
+  min-width: 0;
+  position: relative; overflow: hidden;
+}
+.kpi-card:hover { box-shadow: var(--shadow-sm); }
+.kpi-card .kpi-bar-indicator {
+  width: 4px; height: 40px; border-radius: 2px;
+  flex-shrink: 0;
+}
+.kpi-card .kpi-info { display: flex; flex-direction: column; }
+.kpi-card .kpi-number { font-size: 24px; font-weight: 700; line-height: 1.2; color: var(--color-text-primary); }
+.kpi-card .kpi-label { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+
+/* View Tabs */
+.view-tabs {
+  display: flex; gap: 0; border-bottom: 1px solid var(--color-border);
+}
+.view-tab {
+  height: 36px; padding: 0 16px;
+  display: flex; align-items: center;
+  font-size: 14px; font-weight: 500;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s;
+  border: none; background: none;
+  font-family: var(--font-sans);
+}
+.view-tab:hover { color: var(--color-text-primary); }
+.view-tab.active { color: var(--color-text-primary); }
+.view-tab.active::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+  height: 2px; background: var(--color-primary);
+}
+
+/* Filter Bar */
+.filter-bar {
+  display: flex; gap: var(--space-xs); align-items: center;
+  padding: var(--space-sm) 0; flex-wrap: wrap;
+}
+.filter-bar .filter-item { position: relative; }
+.filter-bar .select { height: 32px; font-size: 12px; padding: 0 24px 0 10px; }
+
+/* Batch action bar */
+.batch-bar {
+  display: none; align-items: center; gap: var(--space-sm);
+  padding: var(--space-xs) var(--space-md); margin-bottom: var(--space-sm);
+  background: var(--color-primary-subtle); border-radius: var(--radius-lg);
+  height: 44px;
+}
+.batch-bar.visible { display: flex; }
+.batch-bar .batch-count {
+  font-size: 13px; color: var(--color-text-secondary);
+  margin-right: var(--space-sm);
+}
+.batch-bar .batch-count strong { color: var(--color-primary); }
+
+/* Tables */
+.table-wrapper {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.table-scroll { overflow-x: auto; }
+table.data-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13px;
+}
+table.data-table thead { position: sticky; top: 0; z-index: 3; }
+table.data-table th {
+  background: var(--color-gray-50);
+  padding: 0 12px; height: 40px;
+  font-size: 12px; font-weight: 500; text-transform: uppercase;
+  color: var(--color-text-secondary);
+  text-align: left; white-space: nowrap;
+  border-bottom: 1px solid var(--color-border);
+  position: sticky; top: 0; z-index: 3;
+}
+table.data-table td {
+  padding: 0 12px; height: 48px;
+  color: var(--color-text-primary);
+  border-bottom: 1px solid var(--color-divider);
+  white-space: nowrap;
+  text-overflow: ellipsis; overflow: hidden;
+}
+table.data-table tr { transition: background 0.1s; }
+table.data-table tr:hover { background: var(--color-surface-hover); }
+table.data-table tr.selected { background: var(--color-primary-subtle); }
+table.data-table tr.clickable { cursor: pointer; }
+table.data-table .col-checkbox { width: 40px; text-align: center; }
+table.data-table .col-checkbox input { width: 16px; height: 16px; cursor: pointer; accent-color: var(--color-primary); }
+table.data-table .link-cell { color: var(--color-text-link); cursor: pointer; }
+table.data-table .link-cell:hover { text-decoration: underline; }
+table.data-table .masked-text { color: var(--color-masked-text); letter-spacing: 1px; }
+
+/* Empty state */
+.empty-state {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 60px 20px; color: var(--color-text-tertiary);
+}
+.empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
+.empty-state p { font-size: 14px; }
+
+/* Skeleton */
+.skeleton {
+  background: linear-gradient(90deg, var(--color-gray-100) 25%, var(--color-gray-200) 50%, var(--color-gray-100) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+
+/* ===== DETAIL PANEL STYLES ===== */
+.detail-section { margin-bottom: var(--space-lg); }
+.detail-section h4 {
+  font-size: 13px; font-weight: 600; color: var(--color-text-secondary);
+  text-transform: uppercase; letter-spacing: 0.02em;
+  margin-bottom: var(--space-sm); padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-divider);
+}
+.detail-field { display: flex; padding: 6px 0; font-size: 13px; }
+.detail-field .field-label { width: 90px; color: var(--color-text-secondary); flex-shrink: 0; }
+.detail-field .field-value { flex: 1; color: var(--color-text-primary); word-break: break-word; }
+.detail-field .field-value.masked { color: var(--color-masked-text); letter-spacing: 1px; }
+
+.detail-card-item {
+  padding: 8px 12px; border: 1px solid var(--color-border);
+  border-radius: var(--radius-md); margin-bottom: 6px;
+  cursor: pointer; transition: background 0.1s;
+}
+.detail-card-item:hover { background: var(--color-surface-hover); }
+.detail-card-item .item-title { font-weight: 500; font-size: 13px; }
+.detail-card-item .item-sub { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+
+.detail-tabs {
+  display: flex; border-bottom: 1px solid var(--color-border);
+  margin-top: var(--space-md);
+}
+.detail-tab {
+  height: 34px; padding: 0 14px;
+  display: flex; align-items: center;
+  font-size: 13px; color: var(--color-text-secondary);
+  cursor: pointer; border: none; background: none;
+  font-family: var(--font-sans); position: relative;
+}
+.detail-tab:hover { color: var(--color-text-primary); }
+.detail-tab.active { color: var(--color-text-primary); }
+.detail-tab.active::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+  height: 2px; background: var(--color-primary);
+}
+.detail-tab-content { padding: var(--space-sm) 0; }
+
+/* Risk item in panel */
+.risk-item {
+  padding: 10px 12px 10px 16px;
+  border-radius: var(--radius-md); margin-bottom: 6px;
+  font-size: 13px;
+  position: relative;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+.risk-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+.risk-item.risk-high::before { background: var(--color-danger); }
+.risk-item.risk-mid::before { background: var(--color-warning); }
+.risk-item.risk-low::before { background: var(--color-idle); }
+.risk-item .risk-title { font-weight: 500; color: var(--color-text-primary); }
+.risk-item .risk-desc { color: var(--color-text-secondary); font-size: 12px; margin-top: 2px; }
+
+/* ===== MODAL ===== */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(2px);
+  z-index: 400;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--color-surface-elevated);
+  border-radius: var(--radius-xl);
+  width: 720px; max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-xl);
+  animation: modalIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes modalOut {
+  from { opacity: 1; transform: scale(1); }
+  to { opacity: 0; transform: scale(0.97); }
+}
+.modal-header {
+  padding: var(--space-lg) var(--space-xl);
+  border-bottom: 1px solid var(--color-divider);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-header h3 { font-size: 18px; font-weight: 600; }
+.modal-close { background: none; border: none; font-size: 20px; color: var(--color-gray-400); cursor: pointer; padding: 4px; border-radius: 4px; }
+.modal-close:hover { background: var(--color-gray-100); color: var(--color-text-primary); }
+.modal-body { padding: var(--space-xl); }
+.modal-footer {
+  padding: var(--space-md) var(--space-xl);
+  border-top: 1px solid var(--color-divider);
+  display: flex; justify-content: flex-end; gap: var(--space-sm);
+}
+
+.form-group { margin-bottom: var(--space-md); }
+.form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--color-text-secondary); margin-bottom: 4px; }
+.form-group label .required { color: var(--color-danger); margin-left: 2px; }
+.form-group .input, .form-group .select { width: 100%; }
+.form-row { display: flex; gap: var(--space-md); }
+.form-row .form-group { flex: 1; }
+.form-section-title {
+  font-size: 14px; font-weight: 600; color: var(--color-text-primary);
+  margin-bottom: var(--space-md); padding-bottom: 6px;
+  border-bottom: 1px solid var(--color-divider);
+}
+
+/* ===== SENSITIVE FIELD ===== */
+.sensitive-field {
+  display: inline-flex; align-items: center; gap: var(--space-xs);
+}
+.sensitive-field .masked {
+  padding: 4px 8px; background: var(--color-masked-bg);
+  border-radius: var(--radius-sm); color: var(--color-masked-text);
+  font-family: var(--font-mono); font-size: 13px; min-width: 80px;
+  letter-spacing: 2px; border: 1px solid var(--color-masked-border);
+}
+.sensitive-field .revealed {
+  padding: 4px 8px; font-family: var(--font-mono); font-size: 13px;
+  color: var(--color-text-primary);
+}
+.sensitive-field .sen-btn {
+  background: none; border: 1px solid var(--color-border);
+  padding: 3px 8px; border-radius: var(--radius-sm);
+  font-size: 12px; color: var(--color-text-link);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  transition: background 0.15s;
+}
+.sensitive-field .sen-btn:hover { background: var(--color-primary-subtle); }
+.sensitive-field .sen-log { color: var(--color-revealed-indicator); font-size: 12px; }
+
+/* ===== TOAST ===== */
+.toast-container {
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+  z-index: 500; display: flex; flex-direction: column; gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  padding: 10px 16px; border-radius: var(--radius-lg);
+  background: var(--color-surface); box-shadow: var(--shadow-lg);
+  font-size: 13px; display: flex; align-items: center; gap: 8px;
+  animation: toastIn 0.25s ease-out;
+  pointer-events: auto;
+  border: 1px solid var(--color-border);
+}
+.toast.toast-success { border-left: 3px solid var(--color-success); }
+.toast.toast-error { border-left: 3px solid var(--color-danger); }
+.toast.toast-warning { border-left: 3px solid var(--color-warning); }
+.toast.toast-info { border-left: 3px solid var(--color-info); }
+@keyframes toastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== OPERATION LOG PAGE ===== */
+.log-filter-bar {
+  display: flex; gap: var(--space-xs); align-items: center;
+  margin-bottom: var(--space-md); padding: var(--space-md) 0;
+  flex-wrap: wrap;
+}
+.log-filter-bar .input { height: 34px; font-size: 13px; }
+.log-filter-bar .select { height: 34px; font-size: 13px; }
+
+/* ===== RISK PAGE ===== */
+.risk-stats {
+  display: flex; gap: var(--space-md); margin-bottom: var(--space-md);
+}
+.risk-stat-card {
+  flex: 1; background: var(--color-surface);
+  border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+  padding: 16px 20px; text-align: center;
+}
+.risk-stat-card .stat-num { font-size: 28px; font-weight: 700; }
+.risk-stat-card .stat-label { font-size: 12px; color: var(--color-text-secondary); margin-top: 4px; }
+.risk-stat-card .stat-num.danger { color: var(--color-danger); }
+.risk-stat-card .stat-num.success { color: var(--color-success); }
+.risk-stat-card .stat-num.idle { color: var(--color-idle); }
+
+/* ===== SETTINGS PAGE ===== */
+.settings-tabs {
+  display: flex; gap: 0; border-bottom: 1px solid var(--color-border);
+  margin-bottom: var(--space-lg);
+}
+.settings-tab {
+  height: 36px; padding: 0 20px; display: flex; align-items: center;
+  font-size: 14px; font-weight: 500; color: var(--color-text-secondary);
+  cursor: pointer; border: none; background: none; font-family: var(--font-sans);
+  position: relative;
+}
+.settings-tab:hover { color: var(--color-text-primary); }
+.settings-tab.active { color: var(--color-text-primary); }
+.settings-tab.active::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+  height: 2px; background: var(--color-primary);
+}
+.settings-placeholder {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 80px 20px; color: var(--color-text-tertiary);
+}
+.settings-placeholder i { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
+.settings-placeholder p { font-size: 14px; }
+.settings-tab-content { min-height: 200px; }
+.dept-tree-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: var(--radius-md);
+  transition: background 0.1s;
+}
+.dept-tree-item:hover { background: var(--color-surface-hover); }
+.dept-tree-item i { color: var(--color-warning); font-size: 16px; width: 20px; }
+.dept-tree-item .dept-name { font-weight: 500; font-size: 13px; }
+.dept-tree-item .dept-meta { font-size: 12px; color: var(--color-text-secondary); margin-left: auto; }
+.dept-tree-children { padding-left: 28px; list-style: none; }
+.dict-card {
+  background: var(--color-surface); border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg); padding: 12px 16px;
+}
+.dict-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--color-text-primary); }
+.dict-card .dict-item {
+  display: flex; justify-content: space-between; padding: 4px 0;
+  font-size: 13px; border-bottom: 1px solid var(--color-divider);
+}
+.dict-card .dict-item:last-child { border-bottom: none; }
+.dict-card .dict-item .dict-code { color: var(--color-text-secondary); font-family: var(--font-mono); font-size: 12px; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1200px) {
+  .kpi-bar { flex-wrap: wrap; }
+  .kpi-card { flex: 1 1 30%; }
+}
+</style>
+</head>
+<body>
+<div class="app-container">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <div class="breadcrumb"><span>首页</span> <i class="fas fa-chevron-right"></i> <span id="currentPageTitle">账号资产</span></div>
+    </div>
+    <div class="header-right">
+      <select class="role-select" id="roleSelect" onchange="switchRole(this.value)">
+        <option value="admin">管理员</option>
+        <option value="employee">普通员工</option>
+        <option value="auditor">审计员</option>
+      </select>
+      <div class="user-avatar"><i class="fas fa-user"></i></div>
+      <button class="logout-btn"><i class="fas fa-sign-out-alt"></i> 退出</button>
+    </div>
+  </header>
+
+  <div class="body-wrapper">
+    <!-- Sidebar -->
+    <nav class="sidebar">
+      <div class="sidebar-logo"><i class="fas fa-shield-alt"></i> 账号资产</div>
+      <div class="sidebar-nav">
+        <a class="nav-item active" data-page="asset" onclick="switchPage('asset', this)"><i class="fas fa-folder"></i> 账号资产</a>
+        <a class="nav-item" data-page="logs" onclick="switchPage('logs', this)"><i class="fas fa-history"></i> 操作日志</a>
+        <a class="nav-item" data-page="risks" onclick="switchPage('risks', this)"><i class="fas fa-exclamation-triangle"></i> 风险提醒</a>
+        <a class="nav-item" data-page="settings" onclick="switchPage('settings', this)"><i class="fas fa-cog"></i> 系统设置</a>
+        <a class="nav-item disabled"><i class="fas fa-users"></i> 员工使用 <span class="badge-v2">V2</span></a>
+        <a class="nav-item disabled"><i class="fas fa-clipboard-check"></i> 申请审批 <span class="badge-v2">V2</span></a>
+        <a class="nav-item disabled"><i class="fas fa-exchange-alt"></i> 离职交接 <span class="badge-v2">V3</span></a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+
+      <!-- ===== ACCOUNT ASSET PAGE ===== -->
+      <div class="page-section active" id="page-asset">
+        <div class="asset-top-bar">
+          <div class="search-row">
+            <div class="search-box">
+              <i class="fas fa-search"></i>
+              <input type="text" id="globalSearch" placeholder="搜索设备名称、IMEI、手机号、账号名称…" oninput="onSearchInput()">
+              <button class="search-clear" id="searchClear" onclick="clearSearch()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="search-actions">
+              <button class="btn btn-primary" onclick="openAddDeviceModal()"><i class="fas fa-plus"></i> 新增设备</button>
+            </div>
+          </div>
+
+          <div class="kpi-bar" id="kpiBar">
+            <div class="kpi-card" onclick="filterByKPI('all')">
+              <div class="kpi-bar-indicator" style="background:var(--color-primary)"></div>
+              <div class="kpi-info">
+                <span class="kpi-number" id="kpiTotal">0</span>
+                <span class="kpi-label">设备总数</span>
+              </div>
+            </div>
+            <div class="kpi-card" onclick="filterByKPI('使用中')">
+              <div class="kpi-bar-indicator" style="background:var(--color-success)"></div>
+              <div class="kpi-info">
+                <span class="kpi-number" id="kpiInUse">0</span>
+                <span class="kpi-label">使用中</span>
+              </div>
+            </div>
+            <div class="kpi-card" onclick="filterByKPI('闲置')">
+              <div class="kpi-bar-indicator" style="background:var(--color-idle)"></div>
+              <div class="kpi-info">
+                <span class="kpi-number" id="kpiIdle">0</span>
+                <span class="kpi-label">闲置</span>
+              </div>
+            </div>
+            <div class="kpi-card" onclick="filterByKPI('高风险')">
+              <div class="kpi-bar-indicator" style="background:var(--color-danger)"></div>
+              <div class="kpi-info">
+                <span class="kpi-number" id="kpiHighRisk" style="color:var(--color-danger)">0</span>
+                <span class="kpi-label">高风险</span>
+              </div>
+            </div>
+            <div class="kpi-card" onclick="filterByKPI('无负责人')">
+              <div class="kpi-bar-indicator" style="background:var(--color-warning)"></div>
+              <div class="kpi-info">
+                <span class="kpi-number" id="kpiNoOwner">0</span>
+                <span class="kpi-label">无负责人</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="view-tabs">
+            <button class="view-tab active" data-view="devices" onclick="switchView('devices', this)">设备列表</button>
+            <button class="view-tab" data-view="phones" onclick="switchView('phones', this)">手机号视图</button>
+            <button class="view-tab" data-view="accounts" onclick="switchView('accounts', this)">互联网账号视图</button>
+          </div>
+
+          <div class="filter-bar" id="filterBar">
+            <div class="filter-item"><select class="select" id="filterSimType"><option value="">SIM类型</option><option value="single">单卡</option><option value="dual">双卡</option></select></div>
+            <div class="filter-item"><select class="select" id="filterPlatform"><option value="">平台类型</option><option value="微信">微信</option><option value="抖音">抖音</option><option value="小红书">小红书</option><option value="快手">快手</option><option value="TikTok">TikTok</option><option value="Google">Google</option><option value="QQ">QQ</option><option value="微博">微博</option><option value="B站">B站</option><option value="淘宝">淘宝</option><option value="京东">京东</option><option value="拼多多">拼多多</option><option value="美团">美团</option><option value="其他">其他</option></select></div>
+            <div class="filter-item"><select class="select" id="filterDepartment"><option value="">所属部门</option><option value="技术部">技术部</option><option value="运营部">运营部</option><option value="市场部">市场部</option><option value="商务部">商务部</option><option value="产品部">产品部</option></select></div>
+            <div class="filter-item"><select class="select" id="filterOwner"><option value="">负责人</option><option value="王伟">王伟</option><option value="张华">张华</option><option value="李明">李明</option><option value="赵强">赵强</option><option value="陈丽">陈丽</option><option value="刘洋">刘洋</option></select></div>
+            <div class="filter-item"><select class="select" id="filterStatus"><option value="">状态</option><option value="正常">正常</option><option value="使用中">使用中</option><option value="闲置">闲置</option><option value="异常">异常</option><option value="已注销">已注销</option></select></div>
+            <div class="filter-item"><select class="select" id="filterRisk"><option value="">风险等级</option><option value="低">低</option><option value="中">中</option><option value="高">高</option></select></div>
+          </div>
+
+          <div class="batch-bar" id="batchBar">
+            <span class="batch-count">已选 <strong id="batchCount">0</strong> 项</span>
+            <button class="btn btn-secondary btn-sm" onclick="batchAction('回收权限')"><i class="fas fa-lock"></i> 收回权限</button>
+            <button class="btn btn-secondary btn-sm" onclick="batchAction('移交负责人')"><i class="fas fa-user-friends"></i> 移交负责人</button>
+            <button class="btn btn-secondary btn-sm" onclick="batchAction('标记高风险')"><i class="fas fa-exclamation-circle"></i> 标记高风险</button>
+            <button class="btn btn-secondary btn-sm" onclick="batchAction('导出所选')"><i class="fas fa-download"></i> 导出所选</button>
+          </div>
+        </div>
+
+        <!-- View: Devices -->
+        <div class="view-container" id="view-devices">
+          <div class="table-wrapper" id="deviceTableWrapper">
+            <div class="table-scroll">
+              <table class="data-table" id="deviceTable">
+                <thead>
+                  <tr>
+                    <th class="col-checkbox"><input type="checkbox" id="deviceSelectAll" onchange="toggleSelectAll('device', this.checked)"></th>
+                    <th>设备编号</th>
+                    <th>设备名称</th>
+                    <th>品牌型号</th>
+                    <th>IMEI</th>
+                    <th>SIM类型</th>
+                    <th>卡槽1手机号</th>
+                    <th>卡槽2手机号</th>
+                    <th>绑定账号数</th>
+                    <th>所属部门</th>
+                    <th>负责人</th>
+                    <th>当前使用人</th>
+                    <th>设备状态</th>
+                    <th>风险等级</th>
+                    <th>更新时间</th>
+                  </tr>
+                </thead>
+                <tbody id="deviceTableBody"></tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="deviceEmpty" style="display:none">
+              <i class="fas fa-mobile-alt"></i>
+              <p>暂无设备数据</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- View: Phones -->
+        <div class="view-container" id="view-phones" style="display:none">
+          <div class="table-wrapper">
+            <div class="table-scroll">
+              <table class="data-table" id="phoneTable">
+                <thead>
+                  <tr>
+                    <th class="col-checkbox"><input type="checkbox" id="phoneSelectAll" onchange="toggleSelectAll('phone', this.checked)"></th>
+                    <th>手机号</th>
+                    <th>运营商</th>
+                    <th>所属设备</th>
+                    <th>SIM卡槽</th>
+                    <th>绑定账号数</th>
+                    <th>负责人</th>
+                    <th>月费用</th>
+                    <th>状态</th>
+                  </tr>
+                </thead>
+                <tbody id="phoneTableBody"></tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="phoneEmpty" style="display:none">
+              <i class="fas fa-phone"></i>
+              <p>暂无手机号数据</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- View: Accounts -->
+        <div class="view-container" id="view-accounts" style="display:none">
+          <div class="table-wrapper">
+            <div class="table-scroll">
+              <table class="data-table" id="accountTable">
+                <thead>
+                  <tr>
+                    <th class="col-checkbox"><input type="checkbox" id="accountSelectAll" onchange="toggleSelectAll('account', this.checked)"></th>
+                    <th>账号编号</th>
+                    <th>平台</th>
+                    <th>账号名称</th>
+                    <th>登录账号</th>
+                    <th>绑定手机号</th>
+                    <th>负责人</th>
+                    <th>当前使用人</th>
+                    <th>权限状态</th>
+                    <th>账号状态</th>
+                    <th>风险等级</th>
+                  </tr>
+                </thead>
+                <tbody id="accountTableBody"></tbody>
+              </table>
+            </div>
+            <div class="empty-state" id="accountEmpty" style="display:none">
+              <i class="fas fa-globe"></i>
+              <p>暂无互联网账号数据</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== OPERATION LOG PAGE ===== -->
+      <div class="page-section" id="page-logs">
+        <h2 style="font-size:20px; font-weight:600; margin-bottom:16px;">操作日志</h2>
+        <div style="display:flex; gap:var(--space-sm); margin-bottom:var(--space-md);">
+          <div style="flex:1; background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:12px 16px; display:flex; align-items:center; gap:12px;">
+            <div style="width:4px; height:36px; border-radius:2px; background:var(--color-info); flex-shrink:0;"></div>
+            <div><span style="font-size:22px; font-weight:700;" id="logStatsToday">0</span><span style="font-size:12px; color:var(--color-text-secondary); margin-left:6px;">条今日</span></div>
+            <div style="width:1px; height:28px; background:var(--color-border);"></div>
+            <div><span style="font-size:22px; font-weight:700;" id="logStatsWeek">0</span><span style="font-size:12px; color:var(--color-text-secondary); margin-left:6px;">条本周</span></div>
+            <div style="width:1px; height:28px; background:var(--color-border);"></div>
+            <div><span style="font-size:22px; font-weight:700;" id="logStatsTotal">0</span><span style="font-size:12px; color:var(--color-text-secondary); margin-left:6px;">条共</span></div>
+          </div>
+        </div>
+        <div class="log-filter-bar">
+          <input class="input" placeholder="操作人" id="logFilterOperator" style="width:140px;">
+          <select class="select" id="logFilterAction" style="width:130px;"><option value="">操作类型</option><option>新增</option><option>编辑</option><option>查看敏感信息</option><option>复制敏感信息</option><option>导入</option><option>导出</option></select>
+          <select class="select" id="logFilterTarget" style="width:140px;"><option value="">目标类型</option><option>设备</option><option>手机号</option><option>互联网账号</option></select>
+          <input class="input" type="date" id="logFilterDateFrom" style="width:140px;">
+          <input class="input" type="date" id="logFilterDateTo" style="width:140px;">
+          <button class="btn btn-primary btn-sm" onclick="filterLogs()"><i class="fas fa-search"></i> 搜索</button>
+        </div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table class="data-table" id="logTable">
+              <thead>
+                <tr><th>操作时间</th><th>操作类型</th><th>目标类型</th><th>操作对象</th><th>操作人</th><th>IP地址</th><th>设备信息</th><th>操作详情</th></tr>
+              </thead>
+              <tbody id="logTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div id="logPagination" style="display:flex; align-items:center; justify-content:space-between; padding:16px 0;">
+          <span style="font-size:13px; color:var(--color-text-secondary);" id="logTotalInfo">共 0 条</span>
+          <div style="display:flex; gap:4px; align-items:center;">
+            <button class="btn btn-secondary btn-sm" onclick="changeLogPage(-1)"><i class="fas fa-chevron-left"></i></button>
+            <span style="font-size:13px; padding:0 8px;" id="logPageInfo">第 1 页</span>
+            <button class="btn btn-secondary btn-sm" onclick="changeLogPage(1)"><i class="fas fa-chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== RISK ALERT PAGE ===== -->
+      <div class="page-section" id="page-risks">
+        <h2 style="font-size:20px; font-weight:600; margin-bottom:16px;">风险提醒</h2>
+        <div class="risk-stats">
+          <div class="risk-stat-card" onclick="filterRisksByStatus('open')" style="cursor:pointer;"><div class="stat-num danger" id="riskOpen">0</div><div class="stat-label">未处理</div></div>
+          <div class="risk-stat-card" onclick="filterRisksByStatus('ignored')" style="cursor:pointer;"><div class="stat-num idle" id="riskIgnored">0</div><div class="stat-label">已忽略</div></div>
+          <div class="risk-stat-card" onclick="filterRisksByStatus('resolved')" style="cursor:pointer;"><div class="stat-num success" id="riskResolved">0</div><div class="stat-label">已解决</div></div>
+        </div>
+        <div class="log-filter-bar">
+          <select class="select" id="riskFilterLevel" style="width:120px;"><option value="">风险等级</option><option>高</option><option>中</option><option>低</option></select>
+          <select class="select" id="riskFilterStatus" style="width:120px;"><option value="">状态</option><option>open</option><option>ignored</option><option>resolved</option></select>
+          <select class="select" id="riskFilterEntity" style="width:140px;"><option value="">实体类型</option><option>设备</option><option>手机号</option><option>互联网账号</option></select>
+          <input class="input" type="date" id="riskFilterDateFrom" style="width:140px;">
+          <input class="input" type="date" id="riskFilterDateTo" style="width:140px;">
+          <button class="btn btn-primary btn-sm" onclick="filterRisks()"><i class="fas fa-search"></i> 搜索</button>
+        </div>
+        <div class="table-wrapper">
+          <div class="table-scroll">
+            <table class="data-table" id="riskTable">
+              <thead>
+                <tr><th>实体类型</th><th>风险编码</th><th>风险标题</th><th>风险等级</th><th>风险原因</th><th>治理建议</th><th>关联实体</th><th>检测时间</th><th>状态</th><th>操作</th></tr>
+              </thead>
+              <tbody id="riskTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== SETTINGS PAGE ===== -->
+      <div class="page-section" id="page-settings">
+        <h2 style="font-size:20px; font-weight:600; margin-bottom:16px;">系统设置</h2>
+        <div class="settings-tabs">
+          <button class="settings-tab active" onclick="switchSettingsTab(this, 'user')">用户管理</button>
+          <button class="settings-tab" onclick="switchSettingsTab(this, 'role')">角色管理</button>
+          <button class="settings-tab" onclick="switchSettingsTab(this, 'dept')">部门管理</button>
+          <button class="settings-tab" onclick="switchSettingsTab(this, 'dict')">字典管理</button>
+        </div>
+
+        <!-- 用户管理 -->
+        <div class="settings-tab-content" id="settings-user" style="display:block;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <span style="font-size:14px; color:var(--color-text-secondary);" id="settingsUserCount">共 5 人</span>
+            <button class="btn btn-primary btn-sm" onclick="showToast('新增用户功能开发中', 'info')"><i class="fas fa-plus"></i> 新增用户</button>
+          </div>
+          <div class="table-wrapper">
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead><tr><th>姓名</th><th>邮箱</th><th>部门</th><th>角色</th><th>状态</th><th>操作</th></tr></thead>
+                <tbody id="settingsUserBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- 角色管理 -->
+        <div class="settings-tab-content" id="settings-role" style="display:none;">
+          <div style="margin-bottom:12px; font-size:14px; color:var(--color-text-secondary);">共 5 种角色</div>
+          <div class="table-wrapper">
+            <div class="table-scroll">
+              <table class="data-table">
+                <thead><tr><th>角色名称</th><th>角色编码</th><th>用户数</th><th>描述</th></tr></thead>
+                <tbody id="settingsRoleBody"></tbody>
+              </table>
+            </div>
+          </div>
+          <div id="settingsRolePermissions" style="margin-top:16px; display:none; background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:16px;">
+            <h4 style="font-size:14px; font-weight:600; margin-bottom:12px;" id="settingsRolePermTitle">权限清单</h4>
+            <div id="settingsRolePermList" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
+          </div>
+        </div>
+
+        <!-- 部门管理 -->
+        <div class="settings-tab-content" id="settings-dept" style="display:none;">
+          <div style="margin-bottom:12px; font-size:14px; color:var(--color-text-secondary);">公司组织架构</div>
+          <div style="background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-lg); padding:16px;">
+            <ul style="list-style:none;" id="settingsDeptTree"></ul>
+          </div>
+        </div>
+
+        <!-- 字典管理 -->
+        <div class="settings-tab-content" id="settings-dict" style="display:none;">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;" id="settingsDictGrid"></div>
+        </div>
+      </div>
+    </main>
+      <!-- ===== RIGHT DETAIL PANEL (常驻) ===== -->
+      <aside class="right-panel" id="rightPanel">
+        <div class="panel-header">
+          <div class="panel-breadcrumb" id="panelBreadcrumb"></div>
+          <div class="panel-title-row">
+            <h3 id="panelTitle">设备详情</h3>
+          </div>
+        </div>
+        <div class="panel-body" id="panelBody" style="display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--color-text-tertiary);font-size:14px;">
+          <i class="fas fa-hand-pointer" style="font-size:32px;margin-bottom:12px;opacity:0.4;"></i>
+          <p>请选择设备查看详情</p>
+        </div>
+      </aside>
+  </div>  <!-- body-wrapper -->
+</div>  <!-- app-container -->
+
+<!-- ===== ADD DEVICE MODAL ===== -->
+<div class="modal-overlay" id="addDeviceModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>新增设备</h3>
+      <button class="modal-close" onclick="closeModal('addDeviceModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-section-title">基本信息</div>
+      <div class="form-row">
+        <div class="form-group"><label>设备名称 <span class="required">*</span></label><input class="input" id="newDeviceName" placeholder="如：王伟工作机"></div>
+        <div class="form-group"><label>品牌型号 <span class="required">*</span></label><input class="input" id="newDeviceModel" placeholder="如 iPhone 14 Pro"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>IMEI <span class="required">*</span></label><input class="input" id="newDeviceImei" placeholder="IMEI 码"></div>
+        <div class="form-group"><label>SIM类型 <span class="required">*</span></label>
+          <select class="select" id="newDeviceSimType"><option value="single">单卡 (Single)</option><option value="dual">双卡 (Dual)</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>所属主体 <span class="required">*</span></label>
+          <select class="select" id="newDeviceOwnerSubject"><option value="公司">公司</option><option value="法人">法人</option><option value="员工个人">员工个人</option></select>
+        </div>
+        <div class="form-group"><label>所属部门 <span class="required">*</span></label>
+          <select class="select" id="newDeviceDepartment"><option value="技术部">技术部</option><option value="运营部">运营部</option><option value="市场部">市场部</option><option value="商务部">商务部</option><option value="产品部">产品部</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>负责人 <span class="required">*</span></label>
+          <select class="select" id="newDeviceOwner"><option value="王伟">王伟</option><option value="张华">张华</option><option value="李明">李明</option><option value="赵强">赵强</option><option value="陈丽">陈丽</option><option value="刘洋">刘洋</option></select>
+        </div>
+        <div class="form-group"><label>当前使用人</label>
+          <select class="select" id="newDeviceUser"><option value="">—</option><option value="王伟">王伟</option><option value="张华">张华</option><option value="李小明">李小明</option><option value="赵晓东">赵晓东</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>设备状态</label>
+          <select class="select" id="newDeviceStatus"><option value="正常">正常</option><option value="使用中">使用中</option><option value="闲置">闲置</option></select>
+        </div>
+        <div class="form-group"><label>备注</label><input class="input" id="newDeviceRemark" placeholder="可选备注信息"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addDeviceModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveNewDevice()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADD ACCOUNT MODAL ===== -->
+<div class="modal-overlay" id="addAccountModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>新增互联网账号</h3>
+      <button class="modal-close" onclick="closeModal('addAccountModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-section-title">账号信息</div>
+      <div class="form-row">
+        <div class="form-group"><label>平台类型 <span class="required">*</span></label>
+          <select class="select" id="newAccPlatform"><option value="微信">微信</option><option value="抖音">抖音</option><option value="小红书">小红书</option><option value="快手">快手</option><option value="TikTok">TikTok</option><option value="Google">Google</option><option value="QQ">QQ</option><option value="微博">微博</option><option value="B站">B站</option><option value="淘宝">淘宝</option><option value="京东">京东</option><option value="拼多多">拼多多</option><option value="美团">美团</option><option value="其他">其他</option></select>
+        </div>
+        <div class="form-group"><label>账号名称 <span class="required">*</span></label><input class="input" id="newAccName" placeholder="如微信号/昵称"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>登录账号 <span class="required">*</span></label><input class="input" id="newAccLogin" placeholder="登录用账号"></div>
+        <div class="form-group"><label>所属部门 <span class="required">*</span></label>
+          <select class="select" id="newAccDepartment"><option value="技术部">技术部</option><option value="运营部">运营部</option><option value="市场部">市场部</option><option value="商务部">商务部</option><option value="产品部">产品部</option></select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>负责人 <span class="required">*</span></label>
+          <select class="select" id="newAccOwner"><option value="王伟">王伟</option><option value="张华">张华</option><option value="李明">李明</option><option value="赵强">赵强</option><option value="陈丽">陈丽</option><option value="刘洋">刘洋</option></select>
+        </div>
+        <div class="form-group"><label>绑定邮箱</label><input class="input" id="newAccEmail" placeholder="可选"></div>
+      </div>
+      <div class="form-section-title">其他信息</div>
+      <div class="form-row">
+        <div class="form-group"><label>所属主体</label>
+          <select class="select" id="newAccSubject"><option value="">—</option><option value="公司">公司</option><option value="法人">法人</option><option value="员工个人">员工个人</option></select>
+        </div>
+        <div class="form-group"><label>服务商</label><input class="input" id="newAccService" placeholder="可选"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label>月费用</label><input class="input" id="newAccFee" placeholder="0.00" type="number" step="0.01"></div>
+        <div class="form-group"><label>到期时间</label><input class="input" id="newAccExpire" type="date"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addAccountModal')">取消</button>
+      <button class="btn btn-primary" onclick="saveNewAccount()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LOG DETAIL MODAL ===== -->
+<div class="modal-overlay" id="logDetailOverlay">
+  <div class="modal" style="width:560px;">
+    <div class="modal-header">
+      <h3>操作详情</h3>
+      <button class="modal-close" onclick="closeModal('logDetailOverlay')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('logDetailOverlay')">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Toast Container ===== -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ===== DATA =====
+const DATA = {
+  departments: ['技术部', '运营部', '市场部', '商务部', '产品部'],
+  users: ['王伟', '张华', '李明', '赵强', '陈丽', '刘洋'],
+  devices: [
+    { id: 1, device_code: 'DEV-20260601-00001', device_name: '王伟工作机', brand_model: 'iPhone 14 Pro', imei: '356789012345678', sim_type: 'dual', owner_subject: '公司', department: '技术部', owner: '王伟', current_user: '王伟', status: '使用中', risk_level: '低', remark: '', created_at: '2026-06-01 09:00', updated_at: '2026-06-18 14:30' },
+    { id: 2, device_code: 'DEV-20260601-00002', device_name: '直播专用机', brand_model: 'Xiaomi 13', imei: '867890123456789', sim_type: 'dual', owner_subject: '公司', department: '运营部', owner: '李明', current_user: '李小明', status: '使用中', risk_level: '低', remark: '', created_at: '2026-06-01 10:00', updated_at: '2026-06-17 16:20' },
+    { id: 3, device_code: 'DEV-20260602-00003', device_name: '测试备用机', brand_model: 'Samsung S23', imei: '358901234567890', sim_type: 'single', owner_subject: '公司', department: '技术部', owner: '张华', current_user: '', status: '闲置', risk_level: '中', remark: '备用测试设备', created_at: '2026-06-02 11:00', updated_at: '2026-06-15 09:10' },
+    { id: 4, device_code: 'DEV-20260605-00004', device_name: '运营工作机', brand_model: 'Honor Magic5', imei: '869012345678901', sim_type: 'dual', owner_subject: '公司', department: '运营部', owner: '赵强', current_user: '赵晓东', status: '使用中', risk_level: '低', remark: '', created_at: '2026-06-05 08:30', updated_at: '2026-06-16 11:45' },
+    { id: 5, device_code: 'DEV-20260610-00005', device_name: '商务洽谈机', brand_model: 'iPhone 15', imei: '350123456789012', sim_type: 'single', owner_subject: '公司', department: '商务部', owner: '陈丽', current_user: '陈丽', status: '正常', risk_level: '高', remark: '近期将移交', created_at: '2026-06-10 09:00', updated_at: '2026-06-18 10:00' }
+  ],
+  phones: [
+    { id: 1, device_id: 1, slot_type: 'sim1', phone_number: '13800111234', phone_full: '13800111234', carrier: '中国移动', is_primary: true, monthly_fee: 199, plan_type: '5G畅享套餐', owner: '王伟', status: '使用中' },
+    { id: 2, device_id: 1, slot_type: 'sim2', phone_number: '13900115678', phone_full: '13900115678', carrier: '中国联通', is_primary: false, monthly_fee: 99, plan_type: '联通冰激凌', owner: '王伟', status: '使用中' },
+    { id: 3, device_id: 2, slot_type: 'sim1', phone_number: '18600019012', phone_full: '18600019012', carrier: '中国联通', is_primary: true, monthly_fee: 299, plan_type: '5G极速套餐', owner: '李明', status: '使用中' },
+    { id: 4, device_id: 2, slot_type: 'sim2', phone_number: '15000003456', phone_full: '15000003456', carrier: '中国移动', is_primary: false, monthly_fee: 59, plan_type: '移动8元保号', owner: '李明', status: '使用中' },
+    { id: 5, device_id: 3, slot_type: 'sim1', phone_number: '13600007890', phone_full: '13600007890', carrier: '中国电信', is_primary: true, monthly_fee: 129, plan_type: '电信天翼套餐', owner: '张华', status: '闲置' },
+    { id: 6, device_id: 4, slot_type: 'sim1', phone_number: '18900002345', phone_full: '18900002345', carrier: '中国电信', is_primary: true, monthly_fee: 199, plan_type: '5G融合套餐', owner: '赵强', status: '使用中' },
+    { id: 7, device_id: 4, slot_type: 'sim2', phone_number: '13700006789', phone_full: '13700006789', carrier: '中国移动', is_primary: false, monthly_fee: 39, plan_type: '移动8元保号', owner: '赵强', status: '使用中' },
+    { id: 8, device_id: 5, slot_type: 'sim1', phone_number: '18500000123', phone_full: '18500000123', carrier: '中国联通', is_primary: true, monthly_fee: 399, plan_type: '商务尊享套餐', owner: '陈丽', status: '使用中' }
+  ],
+  accounts: [
+    { id: 1, phone_id: 1, account_code: 'ACC-20260601-00001', platform: '微信', account_name: 'wangwei_work', login_account: '13800111234', bind_phone: '13800111234', bind_email: 'ww@company.com', owner: '王伟', current_user: '王伟', permission_status: '正常', status: '使用中', risk_level: '低', owner_subject: '公司', department: '技术部', service_provider: '', monthly_fee: 0, expire_at: '', purpose: '工作沟通' },
+    { id: 2, phone_id: 1, account_code: 'ACC-20260601-00002', platform: '抖音', account_name: 'tech_wang', login_account: '13800111234', bind_phone: '13800111234', bind_email: '', owner: '王伟', current_user: '王伟', permission_status: '正常', status: '使用中', risk_level: '低', owner_subject: '公司', department: '技术部', service_provider: '', monthly_fee: 0, expire_at: '', purpose: '技术推广' },
+    { id: 3, phone_id: 1, account_code: 'ACC-20260601-00003', platform: '支付宝', account_name: '王伟(公司)', login_account: '13800111234', bind_phone: '13800111234', bind_email: '', owner: '王伟', current_user: '王伟', permission_status: '正常', status: '使用中', risk_level: '低', owner_subject: '公司', department: '技术部', service_provider: '', monthly_fee: 0, expire_at: '', purpose: '公司支付' },
+    { id: 4, phone_id: 2, account_code: 'ACC-20260601-00004', platform: 'QQ', account_name: 'ww_tech', login_account: '13900115678', bind_phone: '13900115678', bind_email: '', owner: '王伟', current_user: '王伟', permission_status: '正常', status: '使用中', risk_level: '低', owner_subject: '公司', department: '技术部', service_provider: '', monthly_fee: 0, expire_at: '', purpose: '技术交流' },
+    { id: 5, phone_id: 2, account_code: 'ACC-20260601-00005', platform: '微博', account_name: '科技老王', login_account: '13900115678', bind_phone: '13900115678', bind_email: '', owner: '王伟', current_user: '王伟', permission_status: '正常', status: '使用中', risk_level: '低', owner_subject: '公司', department: '技术部', service_provider: '', monthly_fee: 0, expire_at: '', purpose: '品牌宣传' },
+    { id: 6, phone_id: 3, account_code: 'ACC-20260602-00001', platform: 'TikTok', account_name: 'live_ming', login_account: '18600019012', bind_phone: '18600019012', bind_email: '', owner: '李明', current_user: '李小明', permission_status: '正常', status: '使用中', risk_level: '低', owner_subject: '公司', department: '运营部', service_provider: '', monthly_fee: 0, expire_at: '', purpose: '海外直播' },
+    { id: 7, phone_id: 3, account_code: 'ACC-20260602-00002', platform: '快手', account_name: '李明直播', login_account: '18600019012', bind_phone: '18600019012', bind_email: '', owner: '李明', current_user: '李小明', permission_status: '正常', status: '使用中', risk_level: '中', owner_subject: '公司', department: '运营部', service_provider: '', monthly_fee: 0, expire_at: '', purpose: '国内直播' },
+    { id: 8, phone_id: 4, account_code: 'ACC-20260602-00003', platform: '淘宝', account_name: '公司运营店', login_account: '15000003456', bind_phone: '15000003456', bind_email: '', owner: '李明', current_user: '李小明', permission_status: '正常', status: '使用中', risk_level: '低', owner_subject: '公司', department: '运营部', service_provider: '', monthly_fee: 0, expire_at: '', purpose: '店铺运营' },
+    { id: 9, phone_id: 4, account_code: 'ACC-20260602-00004', platform: '京东', account_name: '直播设备采购', login_account: '15000003456', bind_phone: '15000003456', bind_email: '', owner: '李明', current_user: '', permission_status: '离职待收回', status: '闲置', risk_level: '高', owner_subject: '公司', department: '运营部', service_provider: '', monthly_fee: 0, expire_at: '', purpose: '采购' },
+    { id: 10, phone_id: 5, account_code: 'ACC-20260603-00001', platform: 'Google', account_name: 'test.dev', login_account: '13600007890', bind_phone: '13600007890', bind_email: 'test@company.com', owner: '张华', current_user: '', permission_status: '正常', status: '闲置', risk_level: '低', owner_subject: '公司', department: '技术部', service_provider: 'Google', monthly_fee: 0, expire_at: '', purpose: 'Google Play测试' },
+    { id: 11, phone_id: 5, account_code: 'ACC-20260603-00002', platform: 'B站', account_name: '测试账号', login_account: '13600007890', bind_phone: '13600007890', bind_email: '', owner: '张华', current_user: '', permission_status: '正常', status: '闲置', risk_level: '低', owner_subject: '公司', department: '技术部', service_provider: '', monthly_fee: 0, expire_at: '', purpose: '内容测试' },
+    { id: 12, phone_id: 6, account_code: 'ACC-20260605-00001', platform: '小红书', account_name: '运营小赵', login_account: '18900002345', bind_phone: '18900002345', bind_email: '', owner: '赵强', current_user: '赵晓东', permission_status: '正常', status: '使用中', risk_level: '低', owner_subject: '公司', department: '运营部', service_provider: '', monthly_fee: 0, expire_at: '', purpose: '种草推广' },
+    { id: 13, phone_id: 6, account_code: 'ACC-20260605-00002', platform: '美团', account_name: '运营赵', login_account: '18900002345', bind_phone: '18900002345', bind_email: '', owner: '赵强', current_user: '赵晓东', permission_status: '正常', status: '使用中', risk_level: '低', owner_subject: '公司', department: '运营部', service_provider: '', monthly_fee: 0, expire_at: '', purpose: '本地生活' },
+    { id: 14, phone_id: 7, account_code: 'ACC-20260605-00003', platform: '拼多多', account_name: '运营采购', login_account: '13700006789', bind_phone: '13700006789', bind_email: '', owner: '赵强', current_user: '', permission_status: '正常', status: '闲置', risk_level: '中', owner_subject: '公司', department: '运营部', service_provider: '', monthly_fee: 0, expire_at: '', purpose: '采购比价' },
+    { id: 15, phone_id: 7, account_code: 'ACC-20260605-00004', platform: '微信', account_name: 'zhao_ops', login_account: '13700006789', bind_phone: '13700006789', bind_email: '', owner: '赵强', current_user: '赵晓东', permission_status: '正常', status: '使用中', risk_level: '低', owner_subject: '公司', department: '运营部', service_provider: '', monthly_fee: 0, expire_at: '', purpose: '工作沟通' },
+    { id: 16, phone_id: 8, account_code: 'ACC-20260610-00001', platform: '微博', account_name: '商务陈丽', login_account: '18500000123', bind_phone: '18500000123', bind_email: 'chenli@company.com', owner: '陈丽', current_user: '陈丽', permission_status: '正常', status: '使用中', risk_level: '低', owner_subject: '公司', department: '商务部', service_provider: '微博', monthly_fee: 0, expire_at: '2026-12-31', purpose: '商务合作' },
+    { id: 17, phone_id: 8, account_code: 'ACC-20260610-00002', platform: 'QQ', account_name: 'biz_chen', login_account: '18500000123', bind_phone: '18500000123', bind_email: '', owner: '陈丽', current_user: '', permission_status: '离职待收回', status: '闲置', risk_level: '高', owner_subject: '公司', department: '商务部', service_provider: '', monthly_fee: 0, expire_at: '', purpose: '客户对接' }
+  ],
+  logs: [],
+  risks: [],
+  nextDeviceId: 6, nextPhoneId: 9, nextAccountId: 18
+};
+
+// ===== HELPER =====
+function getDeviceName(id) { const d = DATA.devices.find(x => x.id === id); return d ? d.device_name : '—'; }
+function getPhoneFull(id) { const p = DATA.phones.find(x => x.id === id); return p ? p.phone_full : ''; }
+function getPhoneNumber(id) { const p = DATA.phones.find(x => x.id === id); return p ? p.phone_number : '—'; }
+function getUserById(id) { return DATA.users[id - 1] || '—'; }
+
+function getAccountsForPhone(phoneId) { return DATA.accounts.filter(a => a.phone_id === phoneId); }
+function getPhonesForDevice(deviceId) { return DATA.phones.filter(p => p.device_id === deviceId); }
+function getDeviceForPhone(phoneId) { const p = DATA.phones.find(x => x.id === phoneId); return p ? DATA.devices.find(d => d.id === p.device_id) : null; }
+
+function getAccountCountForPhone(phoneId) { return getAccountsForPhone(phoneId).length; }
+function getAccountCountForDevice(deviceId) {
+  return DATA.phones.filter(p => p.device_id === deviceId).reduce((sum, p) => sum + getAccountCountForPhone(p.id), 0);
+}
+
+function maskPhone(num) {
+  if (!num || num.length < 7) return num || '—';
+  return num.slice(0, 3) + '****' + num.slice(-4);
+}
+
+function formatDate(d) { return d || '—'; }
+function todayStr() {
+  const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+// ===== RISK DATA =====
+function buildRiskData() {
+  const risks = [];
+  DATA.devices.forEach(d => {
+    if (!d.owner) risks.push({ entity_type: '设备', risk_code: 'DEVICE_NO_OWNER', risk_title: '设备负责人为空', risk_level: '高', risk_reason: `设备 ${d.device_name} 未设置负责人`, suggestion: '请尽快为该设备指定负责人', entity_ref: d.device_name, detected_at: d.updated_at, status: 'open' });
+    if (d.risk_level === '高') risks.push({ entity_type: '设备', risk_code: 'DEVICE_ABNORMAL', risk_title: '设备状态异常', risk_level: '高', risk_reason: `设备 ${d.device_name} 风险等级为高`, suggestion: '请检查设备状态并处理', entity_ref: d.device_name, detected_at: d.updated_at, status: 'open' });
+    const phones = getPhonesForDevice(d.id);
+    if (phones.length === 0) risks.push({ entity_type: '设备', risk_code: 'DEVICE_NO_PHONE', risk_title: '无绑定手机号', risk_level: '中', risk_reason: `设备 ${d.device_name} 未绑定任何手机号`, suggestion: '请为该设备绑定至少一个手机号', entity_ref: d.device_name, detected_at: d.updated_at, status: 'open' });
+  });
+  DATA.phones.forEach(p => {
+    if (!p.owner) risks.push({ entity_type: '手机号', risk_code: 'PHONE_NO_OWNER', risk_title: '手机号负责人为空', risk_level: '高', risk_reason: `手机号 ${p.phone_number} 未设置负责人`, suggestion: '请为该手机号指定负责人', entity_ref: p.phone_number, detected_at: '', status: 'open' });
+    if (p.monthly_fee > 500) risks.push({ entity_type: '手机号', risk_code: 'PHONE_HIGH_FEE', risk_title: '月费用过高', risk_level: '中', risk_reason: `手机号 ${p.phone_number} 月费用 ${p.monthly_fee} 元`, suggestion: '请确认用途是否合理', entity_ref: p.phone_number, detected_at: '', status: 'open' });
+    if (getAccountCountForPhone(p.id) === 0) risks.push({ entity_type: '手机号', risk_code: 'PHONE_NO_ACCOUNT', risk_title: '无绑定互联网账号', risk_level: '低', risk_reason: `手机号 ${p.phone_number} 未绑定任何互联网账号`, suggestion: '考虑是否需绑定账号', entity_ref: p.phone_number, detected_at: '', status: 'open' });
+  });
+  DATA.accounts.forEach(a => {
+    if (!a.owner) risks.push({ entity_type: '互联网账号', risk_code: 'ACC_NO_OWNER', risk_title: '账号负责人为空', risk_level: '高', risk_reason: `账号 ${a.account_name} 未设置负责人`, suggestion: '请为该账号指定负责人', entity_ref: a.account_name, detected_at: '', status: 'open' });
+    if (a.risk_level === '高') risks.push({ entity_type: '互联网账号', risk_code: 'ACC_HIGH_RISK_MARKED', risk_title: '账号高风险标记', risk_level: '高', risk_reason: `账号 ${a.account_name} 已标记为高风险`, suggestion: '请检查并处理', entity_ref: a.account_name, detected_at: '', status: 'open' });
+    if (a.permission_status === '离职待收回') risks.push({ entity_type: '互联网账号', risk_code: 'ACC_RESIGNED_PENDING', risk_title: '离职待收回', risk_level: '高', risk_reason: `账号 ${a.account_name} 权限状态为离职待收回`, suggestion: '请尽快收回账号权限', entity_ref: a.account_name, detected_at: '', status: 'open' });
+    if (a.status === '使用中' && !a.current_user) risks.push({ entity_type: '互联网账号', risk_code: 'ACC_USING_NO_USER', risk_title: '使用中但无当前使用人', risk_level: '高', risk_reason: `账号 ${a.account_name} 状态为使用中但当前使用人为空`, suggestion: '请确认当前使用人', entity_ref: a.account_name, detected_at: '', status: 'open' });
+  });
+  return risks;
+}
+
+// ===== OPERATION LOGS =====
+function buildLogData() {
+  const actions = ['新增', '编辑', '查看敏感信息', '复制敏感信息', '导入', '导出', '删除', '权限变更', '注销', '解锁'];
+  const targets = ['设备', '手机号', '互联网账号'];
+  const ops = ['王伟', '张华', '李明', '赵强', '陈丽', 'admin', '系统', '刘洋'];
+  const detailTemplates = [
+    { action: '新增', before: '', after: '创建完成' },
+    { action: '编辑', before: '旧值: 负责人=张华', after: '新值: 负责人=王伟' },
+    { action: '查看敏感信息', before: '', after: '密码查看已记录审计日志' },
+    { action: '复制敏感信息', before: '', after: '密码复制已记录审计日志' },
+    { action: '导入', before: '', after: '批量导入5条记录完成' },
+    { action: '导出', before: '', after: '导出Excel格式报表' },
+    { action: '删除', before: '设备状态: 正常', after: '已移入回收站' },
+    { action: '权限变更', before: '权限: 普通操作员', after: '权限: 管理员' },
+    { action: '注销', before: '账号状态: 使用中', after: '账号状态: 已注销' },
+    { action: '解锁', before: '账号状态: 冻结', after: '账号状态: 正常' }
+  ];
+  const logs = [];
+  const now = new Date();
+  const objNames = {
+    '设备': ['DEV-20260601-00001 (王伟工作机)', 'DEV-20260601-00002 (直播专用机)', 'DEV-20260602-00003 (测试备用机)', 'DEV-20260605-00004 (运营工作机)', 'DEV-20260610-00005 (商务洽谈机)'],
+    '手机号': ['138****1234', '139****5678', '186****9012', '150****3456', '136****7890'],
+    '互联网账号': ['ACC-20260601-00001 (wangwei_work)', 'ACC-20260602-00001 (live_ming)', 'ACC-20260603-00001 (test.dev)', 'ACC-20260605-00001 (运营小赵)', 'ACC-20260610-00001 (商务陈丽)']
+  };
+  for (let i = 1; i <= 35; i++) {
+    const d = new Date(now);
+    d.setHours(d.getHours() - Math.floor(i * 1.2));
+    d.setMinutes(Math.floor(Math.random() * 60));
+    const actionIdx = i % actions.length;
+    const action = actions[actionIdx];
+    const target = targets[i % targets.length];
+    const targetObjs = objNames[target] || objNames['设备'];
+    const obj = targetObjs[i % targetObjs.length];
+    const detailTmpl = detailTemplates[actionIdx];
+    logs.push({
+      time: d.toLocaleString('zh-CN'),
+      action: action,
+      target: target,
+      object: obj,
+      operator: ops[i % ops.length],
+      ip: `192.168.${Math.floor(i / 10) + 1}.${100 + i % 50}`,
+      device: ['Chrome 120 / Windows 11', 'Chrome 121 / macOS 14', 'Safari 17 / iOS 17', 'Edge 120 / Windows 11', 'Firefox 122 / Windows 10'][i % 5],
+      detail: `${action}了${target} ${obj}`,
+      detailBefore: detailTmpl.before,
+      detailAfter: detailTmpl.after
+    });
+  }
+  return logs;
+}
+
+DATA.risks = buildRiskData();
+DATA.logs = buildLogData();
+let currentLogPage = 0;
+
+// ===== RENDER FUNCTIONS =====
+function updateKPI() {
+  const total = DATA.devices.length;
+  const inUse = DATA.devices.filter(d => d.status === '使用中').length;
+  const idle = DATA.devices.filter(d => d.status === '闲置').length;
+  const highRisk = DATA.devices.filter(d => d.risk_level === '高').length;
+  const noOwner = DATA.devices.filter(d => !d.owner).length;
+  document.getElementById('kpiTotal').textContent = total;
+  document.getElementById('kpiInUse').textContent = inUse;
+  document.getElementById('kpiIdle').textContent = idle;
+  document.getElementById('kpiHighRisk').textContent = highRisk;
+  document.getElementById('kpiNoOwner').textContent = noOwner;
+}
+
+function getStatusBadge(status) {
+  const map = { '正常': 'badge-success', '使用中': 'badge-primary', '闲置': 'badge-idle', '异常': 'badge-danger', '已注销': 'badge-idle', '冻结': 'badge-warning' };
+  return `<span class="badge ${map[status] || 'badge-idle'}">${status}</span>`;
+}
+
+function getRiskBadge(level) {
+  const map = { '低': 'badge-success', '中': 'badge-warning', '高': 'badge-danger' };
+  return `<span class="badge ${map[level] || 'badge-idle'}"><span class="risk-dot ${level === '高' ? 'high' : level === '中' ? 'mid' : 'low'}"></span>${level}</span>`;
+}
+
+function getSimBadge(sim) {
+  return sim === 'dual' ? '<span class="badge badge-info">双卡</span>' : '<span class="badge badge-idle">单卡</span>';
+}
+
+function getPermissionBadge(p) {
+  const map = { '正常': 'badge-success', '离职待收回': 'badge-danger', '已收回': 'badge-idle' };
+  return `<span class="badge ${map[p] || 'badge-idle'}">${p}</span>`;
+}
+
+function renderDeviceTable(filtered) {
+  const data = filtered || DATA.devices;
+  const tbody = document.getElementById('deviceTableBody');
+  const empty = document.getElementById('deviceEmpty');
+  if (data.length === 0) {
+    tbody.innerHTML = ''; empty.style.display = 'flex';
+    document.querySelector('#deviceTableWrapper .table-scroll table').style.display = 'none';
+    return;
+  }
+  empty.style.display = 'none';
+  document.querySelector('#deviceTableWrapper .table-scroll table').style.display = '';
+  tbody.innerHTML = data.map(d => {
+    const phones = getPhonesForDevice(d.id);
+    const slot1 = phones.find(p => p.slot_type === 'sim1');
+    const slot2 = phones.find(p => p.slot_type === 'sim2');
+    const acctCount = getAccountCountForDevice(d.id);
+    return `<tr class="clickable" data-type="device" data-id="${d.id}" onclick="openDeviceDetail(${d.id})">
+      <td class="col-checkbox" onclick="event.stopPropagation()"><input type="checkbox" class="select-device" value="${d.id}" onchange="updateBatchBar()"></td>
+      <td><span class="link-cell">${d.device_code}</span></td>
+      <td>${d.device_name}</td>
+      <td>${d.brand_model}</td>
+      <td style="font-family:var(--font-mono);font-size:12px;">${d.imei}</td>
+      <td>${getSimBadge(d.sim_type)}</td>
+      <td>${slot1 ? `<span class="link-cell" onclick="event.stopPropagation();openPhoneDetail(${slot1.id})">${slot1.phone_full}</span>` : '—'}</td>
+      <td>${slot2 ? `<span class="link-cell" onclick="event.stopPropagation();openPhoneDetail(${slot2.id})">${slot2.phone_full}</span>` : '—'}</td>
+      <td style="text-align:center;font-weight:500;">${acctCount}</td>
+      <td>${d.department}</td>
+      <td>${d.owner || '<span class="badge badge-danger" style="font-size:11px;">无</span>'}</td>
+      <td>${d.current_user || '—'}</td>
+      <td>${getStatusBadge(d.status)}</td>
+      <td>${getRiskBadge(d.risk_level)}</td>
+      <td style="font-size:12px;color:var(--color-text-secondary)">${d.updated_at}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderPhoneTable(filtered) {
+  const data = filtered || DATA.phones;
+  const tbody = document.getElementById('phoneTableBody');
+  const empty = document.getElementById('phoneEmpty');
+  if (data.length === 0) { tbody.innerHTML = ''; empty.style.display = 'flex'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = data.map(p => {
+    const dev = getDeviceForPhone(p.id);
+    const acctCount = getAccountCountForPhone(p.id);
+    return `<tr class="clickable" data-type="phone" data-id="${p.id}" onclick="openPhoneDetail(${p.id})">
+      <td class="col-checkbox" onclick="event.stopPropagation()"><input type="checkbox" class="select-phone" value="${p.id}" onchange="updateBatchBar()"></td>
+      <td style="font-family:var(--font-mono)">${p.phone_full}</td>
+      <td>${p.carrier}</td>
+      <td><span class="link-cell">${dev ? dev.device_name : '—'}</span></td>
+      <td><span class="badge badge-primary">${p.slot_type.toUpperCase()}</span></td>
+      <td style="text-align:center;font-weight:500;">${acctCount}</td>
+      <td>${p.owner || '—'}</td>
+      <td>${p.monthly_fee ? '¥' + p.monthly_fee : '—'}</td>
+      <td>${getStatusBadge(p.status)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderAccountTable(filtered) {
+  const data = filtered || DATA.accounts;
+  const tbody = document.getElementById('accountTableBody');
+  const empty = document.getElementById('accountEmpty');
+  if (data.length === 0) { tbody.innerHTML = ''; empty.style.display = 'flex'; return; }
+  empty.style.display = 'none';
+  tbody.innerHTML = data.map(a => {
+    const p = DATA.phones.find(x => x.id === a.phone_id);
+    return `<tr class="clickable" data-type="account" data-id="${a.id}" onclick="openAccountDetail(${a.id})">
+      <td class="col-checkbox" onclick="event.stopPropagation()"><input type="checkbox" class="select-account" value="${a.id}" onchange="updateBatchBar()"></td>
+      <td><span class="link-cell">${a.account_code}</span></td>
+      <td><span class="badge badge-primary">${a.platform}</span></td>
+      <td>${a.account_name}</td>
+      <td>${a.login_account}</td>
+      <td>${a.bind_phone}</td>
+      <td>${a.owner || '—'}</td>
+      <td>${a.current_user || '—'}</td>
+      <td>${getPermissionBadge(a.permission_status)}</td>
+      <td>${getStatusBadge(a.status)}</td>
+      <td>${getRiskBadge(a.risk_level)}</td>
+    </tr>`;
+  }).join('');
+}
+
+let currentFilteredLogs = [];
+
+function renderLogTable() {
+  const rowsPerPage = 5;
+  const data = currentFilteredLogs.length > 0 ? currentFilteredLogs : DATA.logs;
+  const total = data.length;
+  const totalPages = Math.ceil(total / rowsPerPage);
+  if (currentLogPage >= totalPages && totalPages > 0) currentLogPage = totalPages - 1;
+  const start = currentLogPage * rowsPerPage;
+  const pageData = data.slice(start, start + rowsPerPage);
+  const tbody = document.getElementById('logTableBody');
+  tbody.innerHTML = pageData.map((l, idx) => {
+    const realIdx = start + idx;
+    return `<tr>
+    <td style="font-size:12px;color:var(--color-text-secondary)">${l.time}</td>
+    <td><span class="badge badge-primary">${l.action}</span></td>
+    <td>${l.target}</td>
+    <td>${l.object}</td>
+    <td>${l.operator}</td>
+    <td style="font-family:var(--font-mono);font-size:12px;">${l.ip}</td>
+    <td style="font-size:12px;color:var(--color-text-secondary)">${l.device}</td>
+    <td><button class="btn btn-ghost btn-sm" onclick="showLogDetail(${realIdx})"><i class="fas fa-info-circle"></i> 查看详情</button></td>
+  </tr>`;
+  }).join('');
+  document.getElementById('logTotalInfo').textContent = `共 ${total} 条`;
+  document.getElementById('logPageInfo').textContent = `第 ${currentLogPage + 1} 页，共 ${totalPages} 页`;
+  updateLogStats();
+}
+
+function updateLogStats() {
+  const data = currentFilteredLogs.length > 0 ? currentFilteredLogs : DATA.logs;
+  const now = new Date();
+  const todayStr = now.toLocaleDateString('zh-CN');
+  const weekStart = new Date(now);
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  const todayCount = data.filter(l => {
+    const t = new Date(l.time);
+    return t.toLocaleDateString('zh-CN') === todayStr;
+  }).length;
+  const weekCount = data.filter(l => {
+    const t = new Date(l.time);
+    return t >= weekStart;
+  }).length;
+  document.getElementById('logStatsToday').textContent = todayCount;
+  document.getElementById('logStatsWeek').textContent = weekCount;
+  document.getElementById('logStatsTotal').textContent = data.length;
+}
+
+function showLogDetail(idx) {
+  const data = currentFilteredLogs.length > 0 ? currentFilteredLogs : DATA.logs;
+  const l = data[idx];
+  if (!l) return;
+  const overlay = document.getElementById('logDetailOverlay');
+  overlay.querySelector('.modal-body').innerHTML = `
+    <div style="display:grid; grid-template-columns:100px 1fr; gap:8px; font-size:13px;">
+      <div style="color:var(--color-text-secondary);">操作时间</div>
+      <div>${l.time}</div>
+      <div style="color:var(--color-text-secondary);">操作类型</div>
+      <div><span class="badge badge-primary">${l.action}</span></div>
+      <div style="color:var(--color-text-secondary);">目标类型</div>
+      <div>${l.target}</div>
+      <div style="color:var(--color-text-secondary);">操作对象</div>
+      <div>${l.object}</div>
+      <div style="color:var(--color-text-secondary);">操作人</div>
+      <div>${l.operator}</div>
+      <div style="color:var(--color-text-secondary);">IP地址</div>
+      <div style="font-family:var(--font-mono);font-size:12px;">${l.ip}</div>
+      <div style="color:var(--color-text-secondary);">设备信息</div>
+      <div style="font-size:12px;">${l.device}</div>
+    </div>
+    <div style="margin-top:16px; border-top:1px solid var(--color-border); padding-top:12px;">
+      <div style="font-size:13px; font-weight:500; margin-bottom:8px;">变更详情</div>
+      ${l.detailBefore ? '<div style="background:var(--color-danger-bg); padding:8px 12px; border-radius:6px; font-size:12px; margin-bottom:6px;"><i class="fas fa-arrow-left" style="color:var(--color-danger); margin-right:6px;"></i>' + l.detailBefore + '</div>' : ''}
+      ${l.detailAfter ? '<div style="background:var(--color-success-bg); padding:8px 12px; border-radius:6px; font-size:12px;"><i class="fas fa-arrow-right" style="color:var(--color-success); margin-right:6px;"></i>' + l.detailAfter + '</div>' : ''}
+      ${!l.detailBefore && !l.detailAfter ? '<div style="color:var(--color-text-tertiary); font-size:13px; text-align:center; padding:12px 0;">无 before/after 变更数据</div>' : ''}
+    </div>
+  `;
+  openModal('logDetailOverlay');
+}
+
+function changeLogPage(dir) {
+  const data = currentFilteredLogs.length > 0 ? currentFilteredLogs : DATA.logs;
+  const total = data.length;
+  const totalPages = Math.ceil(total / 5);
+  const newPage = currentLogPage + dir;
+  if (newPage < 0 || newPage >= totalPages) return;
+  currentLogPage = newPage;
+  renderLogTable();
+}
+
+function renderRiskTable(filtered) {
+  const data = filtered || DATA.risks;
+  const tbody = document.getElementById('riskTableBody');
+  tbody.innerHTML = data.map((r, idx) => {
+    const realIdx = DATA.risks.indexOf(r);
+    return `<tr class="clickable" data-entity-type="${r.entity_type}" data-entity-ref="${r.entity_ref.replace(/"/g, '&quot;')}" onclick="navigateRiskEntity(this)">
+    <td>${r.entity_type}</td>
+    <td style="font-family:var(--font-mono);font-size:12px;">${r.risk_code}</td>
+    <td>${r.risk_title}</td>
+    <td>${getRiskBadge(r.risk_level)}</td>
+    <td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;font-size:12px;color:var(--color-text-secondary)">${r.risk_reason}</td>
+    <td style="font-size:12px;color:var(--color-text-secondary)">${r.suggestion}</td>
+    <td>${r.entity_ref}</td>
+    <td style="font-size:12px;color:var(--color-text-secondary)">${r.detected_at || '—'}</td>
+    <td><span class="badge ${r.status === 'open' ? 'badge-danger' : r.status === 'ignored' ? 'badge-warning' : 'badge-success'}">${r.status === 'open' ? '未处理' : r.status === 'ignored' ? '已忽略' : '已解决'}</span></td>
+    <td style="white-space:nowrap;">
+      ${r.status === 'open' ? `<button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();resolveRisk(${realIdx})"><i class="fas fa-check"></i> 解决</button><button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();ignoreRisk(${realIdx})"><i class="fas fa-flag"></i> 忽略</button>` : `<span style="color:var(--color-text-tertiary);font-size:12px;">—</span>`}
+    </td>
+  </tr>`;
+  }).join('');
+  updateRiskStats();
+}
+
+function updateRiskStats() {
+  const total = DATA.risks.length;
+  const open = DATA.risks.filter(r => r.status === 'open').length;
+  const ignored = DATA.risks.filter(r => r.status === 'ignored').length;
+  const resolved = DATA.risks.filter(r => r.status === 'resolved').length;
+  document.getElementById('riskOpen').textContent = open;
+  document.getElementById('riskIgnored').textContent = ignored;
+  document.getElementById('riskResolved').textContent = resolved;
+}
+
+function resolveRisk(idx) {
+  DATA.risks[idx].status = 'resolved';
+  renderRiskTable();
+  // Also re-render in page-asset if visible
+  showToast('已标记为已解决', 'success');
+}
+
+function ignoreRisk(idx) {
+  DATA.risks[idx].status = 'ignored';
+  renderRiskTable();
+  showToast('已忽略', 'info');
+}
+
+function filterRisksByStatus(status) {
+  document.getElementById('riskFilterStatus').value = '';
+  document.getElementById('riskFilterLevel').value = '';
+  // Clear the search fields too
+  document.getElementById('riskFilterEntity').value = '';
+  document.getElementById('riskFilterDateFrom').value = '';
+  document.getElementById('riskFilterDateTo').value = '';
+  const filtered = DATA.risks.filter(r => r.status === status);
+  renderRiskTable(filtered);
+}
+
+function filterRisks() {
+  const level = document.getElementById('riskFilterLevel').value;
+  const status = document.getElementById('riskFilterStatus').value;
+  const entity = document.getElementById('riskFilterEntity').value;
+  const dateFrom = document.getElementById('riskFilterDateFrom').value;
+  const dateTo = document.getElementById('riskFilterDateTo').value;
+
+  let filtered = DATA.risks.filter(r => {
+    if (level && r.risk_level !== level) return false;
+    if (status && r.status !== status) return false;
+    if (entity && r.entity_type !== entity) return false;
+    if (dateFrom || dateTo) {
+      const t = r.detected_at ? new Date(r.detected_at) : null;
+      if (!t) return false;
+      if (dateFrom) {
+        const from = new Date(dateFrom + ' 00:00:00');
+        if (t < from) return false;
+      }
+      if (dateTo) {
+        const to = new Date(dateTo + ' 23:59:59');
+        if (t > to) return false;
+      }
+    }
+    return true;
+  });
+  renderRiskTable(filtered);
+}
+
+function navigateRiskEntity(el) {
+  const entityType = el.getAttribute('data-entity-type');
+  const entityRef = el.getAttribute('data-entity-ref');
+  // Switch to page-asset and find the entity
+  switchPage('asset', document.querySelector('.nav-item[data-page="asset"]'));
+  // Try to find the entity and open its detail
+  if (entityType === '设备') {
+    const d = DATA.devices.find(x => x.device_name === entityRef);
+    if (d) openDeviceDetail(d.id);
+  } else if (entityType === '手机号') {
+    const p = DATA.phones.find(x => x.phone_number === entityRef || x.phone_full === entityRef);
+    if (p) openPhoneDetail(p.id);
+  } else if (entityType === '互联网账号') {
+    const a = DATA.accounts.find(x => x.account_name === entityRef);
+    if (a) openAccountDetail(a.id);
+  }
+}
+
+// ===== VIEW SWITCHING =====
+let currentView = 'devices';
+function switchView(view, el) {
+  currentView = view;
+  document.querySelectorAll('.view-tab').forEach(t => t.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.view-container').forEach(c => c.style.display = 'none');
+  document.getElementById('view-' + view).style.display = 'block';
+  // Update filter visibility
+  document.getElementById('filterPlatform').style.display = view === 'accounts' ? '' : 'none';
+  applyFilters();
+}
+
+// ===== FILTERING =====
+function applyFilters() {
+  const search = (document.getElementById('globalSearch').value || '').toLowerCase();
+  const simType = document.getElementById('filterSimType').value;
+  const platform = document.getElementById('filterPlatform').value;
+  const dept = document.getElementById('filterDepartment').value;
+  const owner = document.getElementById('filterOwner').value;
+  const status = document.getElementById('filterStatus').value;
+  const risk = document.getElementById('filterRisk').value;
+
+  if (currentView === 'devices') {
+    let data = DATA.devices.filter(d => {
+      if (simType && d.sim_type !== simType) return false;
+      if (dept && d.department !== dept) return false;
+      if (owner && d.owner !== owner) return false;
+      if (status && d.status !== status) return false;
+      if (risk && d.risk_level !== risk) return false;
+      if (search) {
+        const phones = getPhonesForDevice(d.id);
+        const phoneMatch = phones.some(p => p.phone_full.includes(search) || p.phone_number.includes(search));
+        const accts = DATA.accounts.filter(a => phones.some(ph => ph.id === a.phone_id));
+        const acctMatch = accts.some(a => a.account_name.toLowerCase().includes(search) || a.account_code.toLowerCase().includes(search));
+        return d.device_name.toLowerCase().includes(search) || d.device_code.toLowerCase().includes(search) || d.imei.includes(search) || d.brand_model.toLowerCase().includes(search) || phoneMatch || acctMatch;
+      }
+      return true;
+    });
+    renderDeviceTable(data);
+  } else if (currentView === 'phones') {
+    let data = DATA.phones.filter(p => {
+      const dev = getDeviceForPhone(p.id);
+      if (dept && dev && dev.department !== dept) return false;
+      if (owner && p.owner !== owner) return false;
+      if (status && p.status !== status) return false;
+      if (risk && dev && dev.risk_level !== risk) return false;
+      if (search && !p.phone_full.includes(search) && !p.phone_number.includes(search) && !p.carrier.includes(search)) return false;
+      return true;
+    });
+    renderPhoneTable(data);
+  } else {
+    let data = DATA.accounts.filter(a => {
+      if (platform && a.platform !== platform) return false;
+      if (dept && a.department !== dept) return false;
+      if (owner && a.owner !== owner) return false;
+      if (status && a.status !== status) return false;
+      if (risk && a.risk_level !== risk) return false;
+      if (search && !a.account_name.toLowerCase().includes(search) && !a.account_code.toLowerCase().includes(search) && !a.login_account.includes(search) && !a.platform.includes(search)) return false;
+      return true;
+    });
+    renderAccountTable(data);
+  }
+  updateBatchBar();
+}
+
+let searchTimer = null;
+function onSearchInput() {
+  clearTimeout(searchTimer);
+  const val = document.getElementById('globalSearch').value;
+  document.getElementById('searchClear').classList.toggle('visible', val.length > 0);
+  searchTimer = setTimeout(applyFilters, 300);
+}
+function clearSearch() {
+  document.getElementById('globalSearch').value = '';
+  document.getElementById('searchClear').classList.remove('visible');
+  applyFilters();
+}
+
+function filterByKPI(type) {
+  document.getElementById('filterStatus').value = '';
+  document.getElementById('filterRisk').value = '';
+  if (type === 'all') { applyFilters(); return; }
+  if (type === '高风险') {
+    document.getElementById('filterRisk').value = '高';
+  } else if (type === '无负责人') {
+    // Can't filter easily by no-owner via the select, so we'll handle it
+    // Reset and do custom filter
+  } else {
+    document.getElementById('filterStatus').value = type;
+  }
+  applyFilters();
+  if (type === '无负责人') {
+    // Custom filter
+    if (currentView === 'devices') {
+      renderDeviceTable(DATA.devices.filter(d => !d.owner));
+    }
+  }
+}
+
+// ===== BATCH BAR =====
+function updateBatchBar() {
+  let checked = [];
+  if (currentView === 'devices') checked = document.querySelectorAll('.select-device:checked');
+  else if (currentView === 'phones') checked = document.querySelectorAll('.select-phone:checked');
+  else checked = document.querySelectorAll('.select-account:checked');
+  const bar = document.getElementById('batchBar');
+  if (checked.length > 0) {
+    bar.classList.add('visible');
+    document.getElementById('batchCount').textContent = checked.length;
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+function toggleSelectAll(type, checked) {
+  document.querySelectorAll(`.select-${type}`).forEach(cb => cb.checked = checked);
+  updateBatchBar();
+}
+
+function batchAction(action) {
+  showToast(`批量操作：${action} 已执行`, 'success');
+  updateBatchBar();
+}
+
+// ===== PAGE SWITCHING =====
+function switchPage(page, el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  if (el) el.classList.add('active');
+  document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const titles = { asset: '账号资产', logs: '操作日志', risks: '风险提醒', settings: '系统设置' };
+  document.getElementById('currentPageTitle').textContent = titles[page] || '账号资产';
+  if (page === 'asset') { updateKPI(); applyFilters(); }
+  if (page === 'logs') renderLogTable();
+  if (page === 'risks') renderRiskTable();
+  // 切换到非资产页面时，右侧面板显示提示
+  if (page !== 'asset') {
+    setPanelContent('详情', [], '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;color:var(--color-text-tertiary);"><i class="fas fa-hand-pointer" style="font-size:32px;margin-bottom:12px;opacity:0.4;"></i><p>请在账号资产页面选择条目查看详情</p></div>');
+  }
+}
+
+// ===== RIGHT PANEL =====
+function setPanelContent(title, breadcrumbItems, bodyHtml) {
+  const panel = document.getElementById('rightPanel');
+  if (!panel) return;
+  document.getElementById('panelTitle').textContent = title;
+  const bcEl = document.getElementById('panelBreadcrumb');
+  if (breadcrumbItems && breadcrumbItems.length > 0) {
+    bcEl.innerHTML = renderBreadcrumb(breadcrumbItems);
+  } else {
+    bcEl.innerHTML = '';
+  }
+  const body = document.getElementById('panelBody');
+  body.style.display = '';
+  body.style.alignItems = '';
+  body.style.justifyContent = '';
+  body.style.color = '';
+  body.style.fontSize = '';
+  body.innerHTML = bodyHtml;
+}
+
+function renderBreadcrumb(items) {
+  return items.map((item, i) => {
+    if (i < items.length - 1) {
+      return `<span class="crumb-link" onclick="(${item.onClick})">${item.label}</span> <span class="crumb-sep"><i class="fas fa-chevron-right" style="font-size:9px;"></i></span>`;
+    }
+    return `<span class="crumb-current">${item.label}</span>`;
+  }).join('');
+}
+
+function openDeviceDetail(deviceId) {
+  const d = DATA.devices.find(x => x.id === deviceId);
+  if (!d) return;
+  const phones = getPhonesForDevice(d.id);
+  const accts = DATA.accounts.filter(a => phones.some(p => p.id === a.phone_id));
+  const simInfo = phones.map(p => `<div class="detail-card-item" onclick="openPhoneDetail(${p.id})">
+    <div class="item-title">${p.slot_type.toUpperCase()} · ${p.phone_number} <span style="font-size:12px;color:var(--color-text-secondary);font-weight:400;">${p.carrier}</span></div>
+    <div class="item-sub">月费: ¥${p.monthly_fee || 0} · 绑定 ${getAccountCountForPhone(p.id)} 个账号</div>
+  </div>`).join('');
+
+  const acctHtml = phones.map(p => {
+    const pa = getAccountsForPhone(p.id);
+    if (pa.length === 0) return '';
+    return `<div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin:6px 0 4px;">${p.phone_number} (${p.slot_type.toUpperCase()})</div>
+      ${pa.map(a => `<div class="detail-card-item" onclick="openAccountDetail(${a.id})" style="padding:6px 10px;">
+        <div class="item-title"><span class="badge badge-primary" style="font-size:10px;">${a.platform}</span> ${a.account_name}</div>
+        <div class="item-sub">${getStatusBadge(a.status)} · ${getRiskBadge(a.risk_level)}</div>
+      </div>`).join('')}`;
+  }).join('');
+
+  setPanelContent('设备详情', [
+    { label: d.device_name, onClick: `openDeviceDetail(${deviceId})` }
+  ], `
+    <div class="detail-section">
+      <h4>设备摘要</h4>
+      <div class="detail-field"><span class="field-label">设备名称</span><span class="field-value">${d.device_name}</span></div>
+      <div class="detail-field"><span class="field-label">设备编号</span><span class="field-value" style="font-family:var(--font-mono);font-size:12px;">${d.device_code}</span></div>
+      <div class="detail-field"><span class="field-label">品牌型号</span><span class="field-value">${d.brand_model}</span></div>
+      <div class="detail-field"><span class="field-label">IMEI</span><span class="field-value" style="font-family:var(--font-mono);font-size:12px;">${d.imei}</span></div>
+      <div class="detail-field"><span class="field-label">状态</span><span class="field-value">${getStatusBadge(d.status)} ${getRiskBadge(d.risk_level)}</span></div>
+    </div>
+    <div class="detail-section">
+      <h4>设备属性</h4>
+      <div class="detail-field"><span class="field-label">所属主体</span><span class="field-value">${d.owner_subject}</span></div>
+      <div class="detail-field"><span class="field-label">所属部门</span><span class="field-value">${d.department}</span></div>
+      <div class="detail-field"><span class="field-label">负责人</span><span class="field-value">${d.owner || '<span class="badge badge-danger" style="font-size:11px;">未设置</span>'}</span></div>
+      <div class="detail-field"><span class="field-label">当前使用人</span><span class="field-value">${d.current_user || '—'}</span></div>
+      <div class="detail-field"><span class="field-label">SIM类型</span><span class="field-value">${getSimBadge(d.sim_type)}</span></div>
+    </div>
+    <div class="detail-section">
+      <h4>SIM卡槽信息</h4>
+      ${simInfo || '<div style="color:var(--color-text-tertiary);font-size:13px;">暂无绑定手机号</div>'}
+    </div>
+    <div class="detail-section">
+      <h4>绑定账号汇总</h4>
+      ${acctHtml || '<div style="color:var(--color-text-tertiary);font-size:13px;">暂无绑定账号</div>'}
+    </div>
+    <div class="detail-section">
+      <h4>风险与建议</h4>
+      ${DATA.risks.filter(r => r.entity_ref === d.device_name).map(r => `<div class="risk-item risk-${r.risk_level === '高' ? 'high' : r.risk_level === '中' ? 'mid' : 'low'}"><div class="risk-title">${getRiskBadge(r.risk_level)} ${r.risk_title}</div><div class="risk-desc">${r.risk_reason} · 建议: ${r.suggestion}</div></div>`).join('') || '<div style="color:var(--color-text-tertiary);font-size:13px;">暂无风险</div>'}
+    </div>
+    <div class="detail-tabs">
+      <button class="detail-tab active" onclick="showDetailTab(this,'使用记录')">使用记录</button>
+      <button class="detail-tab" onclick="showDetailTab(this,'修改记录')">修改记录</button>
+      <button class="detail-tab" onclick="showDetailTab(this,'操作日志')">操作日志</button>
+    </div>
+    <div class="detail-tab-content">
+      <div style="color:var(--color-text-tertiary);font-size:13px;padding:12px 0;text-align:center;">暂无使用记录</div>
+    </div>`);
+}
+
+function openPhoneDetail(phoneId) {
+  const p = DATA.phones.find(x => x.id === phoneId);
+  if (!p) return;
+  const dev = getDeviceForPhone(p.id);
+  const accts = getAccountsForPhone(p.id);
+  const devId = dev ? dev.id : 0;
+
+  setPanelContent('手机号详情', [
+    { label: dev ? dev.device_name : '设备', onClick: `openDeviceDetail(${devId})` },
+    { label: p.phone_number, onClick: `openPhoneDetail(${phoneId})` }
+  ], `
+    <div class="detail-section">
+      <h4>手机号摘要</h4>
+      <div class="detail-field"><span class="field-label">手机号</span><span class="field-value" style="font-family:var(--font-mono);letter-spacing:1px;">${p.phone_full}</span></div>
+      <div class="detail-field"><span class="field-label">运营商</span><span class="field-value">${p.carrier}</span></div>
+      <div class="detail-field"><span class="field-label">所属设备</span><span class="field-value link-cell" onclick="openDeviceDetail(${devId})">${dev ? dev.device_name : '—'}</span></div>
+      <div class="detail-field"><span class="field-label">卡槽</span><span class="field-value"><span class="badge badge-primary">${p.slot_type.toUpperCase()}</span></span></div>
+    </div>
+    <div class="detail-section">
+      <h4>手机号属性</h4>
+      <div class="detail-field"><span class="field-label">负责人</span><span class="field-value">${p.owner || '—'}</span></div>
+      <div class="detail-field"><span class="field-label">套餐类型</span><span class="field-value">${p.plan_type || '—'}</span></div>
+      <div class="detail-field"><span class="field-label">月费用</span><span class="field-value">¥${p.monthly_fee || 0}</span></div>
+      <div class="detail-field"><span class="field-label">状态</span><span class="field-value">${getStatusBadge(p.status)}</span></div>
+    </div>
+    <div class="detail-section">
+      <h4>绑定的互联网账号 <button class="btn btn-ghost btn-sm" onclick="openAddAccountForPhone(${phoneId})" style="float:right;"><i class="fas fa-plus"></i> 新增账号</button></h4>
+      ${accts.map(a => `<div class="detail-card-item" onclick="openAccountDetail(${a.id})">
+        <div class="item-title"><span class="badge badge-primary" style="font-size:10px;">${a.platform}</span> ${a.account_name}</div>
+        <div class="item-sub">${getStatusBadge(a.status)} · ${getRiskBadge(a.risk_level)} · ${a.current_user || '无使用人'}</div>
+      </div>`).join('') || '<div style="color:var(--color-text-tertiary);font-size:13px;">暂无绑定互联网账号</div>'}
+    </div>
+    <div class="detail-tabs">
+      <button class="detail-tab active" onclick="showDetailTab(this,'使用记录')">使用记录</button>
+      <button class="detail-tab" onclick="showDetailTab(this,'修改记录')">修改记录</button>
+      <button class="detail-tab" onclick="showDetailTab(this,'操作日志')">操作日志</button>
+    </div>
+    <div class="detail-tab-content"><div style="color:var(--color-text-tertiary);font-size:13px;padding:12px 0;text-align:center;">暂无记录</div></div>`);
+}
+
+function openAccountDetail(accountId) {
+  const a = DATA.accounts.find(x => x.id === accountId);
+  if (!a) return;
+  const p = DATA.phones.find(x => x.id === a.phone_id);
+  const dev = p ? getDeviceForPhone(p.id) : null;
+  const devId = dev ? dev.id : 0;
+  const phoneId = p ? p.id : 0;
+
+  // Sensitive info
+  const sensitiveHtml = `<div class="detail-field"><span class="field-label">登录密码</span><span class="field-value"><span class="sensitive-field"><span class="masked" id="senPwd${accountId}">••••••</span><button class="sen-btn" onclick="revealSensitive('senPwd${accountId}','Pass@2024#!')"><i class="fas fa-eye"></i> 查看</button><button class="sen-btn" onclick="copySensitive('Pass@2024#!')"><i class="fas fa-copy"></i> 复制</button><span class="sen-log" id="senLog${accountId}" style="display:none;"><i class="fas fa-check-circle"></i> 已记录日志</span></span></span></div>`;
+
+  setPanelContent('互联网账号详情', [
+    { label: dev ? dev.device_name : '设备', onClick: `openDeviceDetail(${devId})` },
+    { label: p ? p.phone_number : '手机号', onClick: `openPhoneDetail(${phoneId})` },
+    { label: a.account_name, onClick: `openAccountDetail(${accountId})` }
+  ], `
+    <div class="detail-section">
+      <h4>账号摘要</h4>
+      <div class="detail-field"><span class="field-label">账号编号</span><span class="field-value" style="font-family:var(--font-mono);font-size:12px;">${a.account_code}</span></div>
+      <div class="detail-field"><span class="field-label">账号名称</span><span class="field-value">${a.account_name}</span></div>
+      <div class="detail-field"><span class="field-label">平台</span><span class="field-value"><span class="badge badge-primary">${a.platform}</span></span></div>
+      <div class="detail-field"><span class="field-label">状态</span><span class="field-value">${getStatusBadge(a.status)} ${getRiskBadge(a.risk_level)} ${getPermissionBadge(a.permission_status)}</span></div>
+    </div>
+    <div class="detail-section">
+      <h4>绑定关系</h4>
+      <div class="detail-field"><span class="field-label">绑定手机号</span><span class="field-value">${a.bind_phone || '—'}</span></div>
+      <div class="detail-field"><span class="field-label">绑定邮箱</span><span class="field-value">${a.bind_email || '—'}</span></div>
+      <div class="detail-field"><span class="field-label">所属设备</span><span class="field-value link-cell" onclick="openDeviceDetail(${devId})">${dev ? dev.device_name : '—'}</span></div>
+    </div>
+    <div class="detail-section">
+      <h4>责任信息</h4>
+      <div class="detail-field"><span class="field-label">所属主体</span><span class="field-value">${a.owner_subject || '—'}</span></div>
+      <div class="detail-field"><span class="field-label">所属部门</span><span class="field-value">${a.department || '—'}</span></div>
+      <div class="detail-field"><span class="field-label">负责人</span><span class="field-value">${a.owner || '—'}</span></div>
+      <div class="detail-field"><span class="field-label">当前使用人</span><span class="field-value">${a.current_user || '—'}</span></div>
+    </div>
+    <div class="detail-section">
+      <h4>敏感信息</h4>
+      ${sensitiveHtml}
+    </div>
+    <div class="detail-section">
+      <h4>费用与期限</h4>
+      <div class="detail-field"><span class="field-label">服务商</span><span class="field-value">${a.service_provider || '—'}</span></div>
+      <div class="detail-field"><span class="field-label">月费用</span><span class="field-value">${a.monthly_fee ? '¥' + a.monthly_fee : '—'}</span></div>
+      <div class="detail-field"><span class="field-label">到期时间</span><span class="field-value">${a.expire_at || '长期有效'}</span></div>
+      <div class="detail-field"><span class="field-label">用途</span><span class="field-value">${a.purpose || '—'}</span></div>
+    </div>
+    <div class="detail-section">
+      <h4>风险与建议</h4>
+      ${DATA.risks.filter(r => r.entity_ref === a.account_name).map(r => `<div class="risk-item risk-${r.risk_level === '高' ? 'high' : r.risk_level === '中' ? 'mid' : 'low'}"><div class="risk-title">${getRiskBadge(r.risk_level)} ${r.risk_title}</div><div class="risk-desc">${r.risk_reason} · 建议: ${r.suggestion}</div></div>`).join('') || '<div style="color:var(--color-text-tertiary);font-size:13px;">暂无风险</div>'}
+    </div>
+    <div class="detail-tabs">
+      <button class="detail-tab active" onclick="showDetailTab(this,'使用记录')">使用记录</button>
+      <button class="detail-tab" onclick="showDetailTab(this,'修改记录')">修改记录</button>
+      <button class="detail-tab" onclick="showDetailTab(this,'操作日志')">操作日志</button>
+    </div>
+    <div class="detail-tab-content"><div style="color:var(--color-text-tertiary);font-size:13px;padding:12px 0;text-align:center;">暂无记录</div></div>`);
+}
+
+function showDetailTab(el, name) {
+  const container = el.closest('.panel-body');
+  if (!container) return;
+  container.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  const content = container.querySelector('.detail-tab-content');
+  if (content) {
+    content.innerHTML = `<div style="color:var(--color-text-tertiary);font-size:13px;padding:12px 0;text-align:center;">暂无${name}</div>`;
+  }
+}
+
+// ===== SENSITIVE INFO =====
+let senTimers = {};
+function revealSensitive(elemId, value) {
+  const el = document.getElementById(elemId);
+  if (!el) return;
+  el.textContent = value;
+  el.className = 'revealed';
+  const logEl = document.getElementById(elemId.replace('senPwd','senLog'));
+  if (logEl) logEl.style.display = 'inline';
+  showToast('已记录查看日志', 'info');
+  // Auto-restore in 30s
+  if (senTimers[elemId]) clearTimeout(senTimers[elemId]);
+  senTimers[elemId] = setTimeout(() => {
+    const e = document.getElementById(elemId);
+    if (e) { e.textContent = '••••••'; e.className = 'masked'; }
+    if (logEl) logEl.style.display = 'none';
+  }, 30000);
+}
+
+function copySensitive(value) {
+  navigator.clipboard.writeText(value).then(() => {
+    showToast('已复制到剪贴板，已记录日志', 'success');
+  }).catch(() => {
+    showToast('复制失败', 'error');
+  });
+}
+
+// ===== MODALS =====
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) {
+  const overlay = document.getElementById(id);
+  const modal = overlay.querySelector('.modal');
+  if (modal) {
+    modal.style.animation = 'modalOut 0.15s cubic-bezier(0.4, 0, 0.2, 1) forwards';
+    setTimeout(() => {
+      overlay.classList.remove('open');
+      modal.style.animation = '';
+    }, 150);
+  } else {
+    overlay.classList.remove('open');
+  }
+}
+
+function openAddDeviceModal() { openModal('addDeviceModal'); }
+
+function openAddAccountForPhone(phoneId) {
+  window._addAccountPhoneId = phoneId;
+  openModal('addAccountModal');
+}
+
+function saveNewDevice() {
+  const name = document.getElementById('newDeviceName').value.trim();
+  const model = document.getElementById('newDeviceModel').value.trim();
+  const imei = document.getElementById('newDeviceImei').value.trim();
+  const simType = document.getElementById('newDeviceSimType').value;
+  const ownerSubject = document.getElementById('newDeviceOwnerSubject').value;
+  const department = document.getElementById('newDeviceDepartment').value;
+  const owner = document.getElementById('newDeviceOwner').value;
+  if (!name || !model || !imei || !simType || !ownerSubject || !department || !owner) {
+    showToast('请填写所有必填字段（带*号）', 'error');
+    return;
+  }
+  const d = {
+    id: DATA.nextDeviceId++,
+    device_code: 'DEV-' + todayStr().replace(/-/g,'') + '-' + String(DATA.devices.length + 1).padStart(5,'0'),
+    device_name: name,
+    brand_model: model,
+    imei: imei,
+    sim_type: document.getElementById('newDeviceSimType').value,
+    owner_subject: document.getElementById('newDeviceOwnerSubject').value,
+    department: document.getElementById('newDeviceDepartment').value,
+    owner: document.getElementById('newDeviceOwner').value,
+    current_user: document.getElementById('newDeviceUser').value || '',
+    status: document.getElementById('newDeviceStatus').value,
+    risk_level: '低',
+    remark: document.getElementById('newDeviceRemark').value || '',
+    created_at: new Date().toLocaleString('zh-CN'),
+    updated_at: new Date().toLocaleString('zh-CN')
+  };
+  DATA.devices.unshift(d);
+  DATA.risks = buildRiskData();
+  closeModal('addDeviceModal');
+  updateKPI();
+  applyFilters();
+  showToast(`设备 ${name} 创建成功`, 'success');
+}
+
+function saveNewAccount() {
+  const platform = document.getElementById('newAccPlatform').value;
+  const name = document.getElementById('newAccName').value.trim();
+  const login = document.getElementById('newAccLogin').value.trim();
+  if (!name || !login) { showToast('请填写必填字段', 'error'); return; }
+  const phoneId = window._addAccountPhoneId || 1;
+  const p = DATA.phones.find(x => x.id === phoneId);
+  const a = {
+    id: DATA.nextAccountId++,
+    phone_id: phoneId,
+    account_code: 'ACC-' + todayStr().replace(/-/g,'') + '-' + String(DATA.accounts.length + 1).padStart(5,'0'),
+    platform: platform,
+    account_name: name,
+    login_account: login,
+    bind_phone: p ? p.phone_number : login,
+    bind_email: document.getElementById('newAccEmail').value || '',
+    owner: document.getElementById('newAccOwner').value,
+    current_user: '',
+    permission_status: '正常',
+    status: '正常',
+    risk_level: '低',
+    owner_subject: document.getElementById('newAccSubject').value || '',
+    department: document.getElementById('newAccDepartment').value,
+    service_provider: document.getElementById('newAccService').value || '',
+    monthly_fee: parseFloat(document.getElementById('newAccFee').value) || 0,
+    expire_at: document.getElementById('newAccExpire').value || '',
+    purpose: ''
+  };
+  DATA.accounts.push(a);
+  DATA.risks = buildRiskData();
+  DATA.logs.unshift({
+    time: new Date().toLocaleString('zh-CN'),
+    action: '新增',
+    target: '互联网账号',
+    object: a.account_code,
+    operator: '当前用户',
+    ip: '192.168.1.100',
+    device: 'Chrome 120 / Windows 11',
+    detail: `新增了互联网账号 ${a.account_name} (${a.platform})`
+  });
+  closeModal('addAccountModal');
+  if (currentView === 'accounts') applyFilters();
+  showToast(`互联网账号 ${name} 创建成功`, 'success');
+}
+
+// ===== ROLE SWITCH =====
+function switchRole(role) {
+  const isEmployee = role === 'employee';
+  document.querySelectorAll('.btn-primary, .btn-secondary, .btn-ghost, .btn-danger').forEach(b => {
+    b.disabled = isEmployee;
+    b.style.opacity = isEmployee ? '0.5' : '';
+    b.style.cursor = isEmployee ? 'not-allowed' : '';
+  });
+  showToast(`已切换为${role === 'admin' ? '管理员' : role === 'employee' ? '普通员工' : '审计员'}角色`, 'info');
+}
+
+// ===== TOAST =====
+function showToast(msg, type) {
+  const types = type || 'info';
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-' + types;
+  const icons = { success: 'fa-check-circle', error: 'fa-times-circle', warning: 'fa-exclamation-triangle', info: 'fa-info-circle' };
+  toast.innerHTML = `<i class="fas ${icons[types] || icons.info}" style="font-size:14px;"></i> ${msg}`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.2s';
+    setTimeout(() => toast.remove(), 200);
+  }, 3000);
+}
+
+// ===== LOG FILTER =====
+function filterLogs() {
+  const operator = (document.getElementById('logFilterOperator').value || '').trim().toLowerCase();
+  const action = document.getElementById('logFilterAction').value;
+  const target = document.getElementById('logFilterTarget').value;
+  const dateFrom = document.getElementById('logFilterDateFrom').value;
+  const dateTo = document.getElementById('logFilterDateTo').value;
+
+  let filtered = DATA.logs.filter(l => {
+    if (operator && !l.operator.toLowerCase().includes(operator)) return false;
+    if (action && l.action !== action) return false;
+    if (target && l.target !== target) return false;
+    if (dateFrom || dateTo) {
+      const t = new Date(l.time);
+      if (dateFrom) {
+        const from = new Date(dateFrom + ' 00:00:00');
+        if (t < from) return false;
+      }
+      if (dateTo) {
+        const to = new Date(dateTo + ' 23:59:59');
+        if (t > to) return false;
+      }
+    }
+    return true;
+  });
+  currentFilteredLogs = filtered;
+  currentLogPage = 0;
+  renderLogTable();
+}
+
+// ===== SETTINGS PAGE =====
+const SETTINGS_DATA = {
+  users: [
+    { name: '王伟', email: 'wangwei@company.com', dept: '技术部', role: '超级管理员', status: 'active' },
+    { name: '张华', email: 'zhanghua@company.com', dept: '技术部', role: '部门负责人', status: 'active' },
+    { name: '李明', email: 'liming@company.com', dept: '运营部', role: '账号管理员', status: 'active' },
+    { name: '赵强', email: 'zhaoqiang@company.com', dept: '运营部', role: '部门负责人', status: 'active' },
+    { name: '陈丽', email: 'chenli@company.com', dept: '商务部', role: '普通员工', status: 'resigned' }
+  ],
+  roles: [
+    { name: '超级管理员', code: 'ROLE_SUPER_ADMIN', users: 1, desc: '系统所有权限，包括敏感信息查看和系统设置' },
+    { name: '老板', code: 'ROLE_BOSS', users: 1, desc: '可查看所有资产和日志，不可修改设置' },
+    { name: '账号管理员', code: 'ROLE_ACCOUNT_ADMIN', users: 1, desc: '管理账号资产、分配权限、处理风险' },
+    { name: '部门负责人', code: 'ROLE_DEPT_HEAD', users: 2, desc: '管理部门内资产和人员' },
+    { name: '普通员工', code: 'ROLE_EMPLOYEE', users: 1, desc: '使用分配的账号，不可查看敏感信息' }
+  ],
+  perms: ['账号管理', '敏感信息查看', '日志查看', '导入导出', '系统设置'],
+  depts: [
+    { name: '公司', count: 5, head: '王伟', children: [
+      { name: '技术部', count: 2, head: '张华', children: [] },
+      { name: '运营部', count: 2, head: '赵强', children: [] },
+      { name: '市场部', count: 0, head: '—', children: [] },
+      { name: '商务部', count: 1, head: '陈丽', children: [] },
+      { name: '产品部', count: 0, head: '—', children: [] }
+    ]}
+  ],
+  dicts: [
+    { name: '平台类型', items: [
+      { code: 'WECHAT', name: '微信' }, { code: 'DOUYIN', name: '抖音' }, { code: 'XHS', name: '小红书' }, { code: 'KUAISHOU', name: '快手' },
+      { code: 'TIKTOK', name: 'TikTok' }, { code: 'GOOGLE', name: 'Google' }, { code: 'QQ', name: 'QQ' }, { code: 'WEIBO', name: '微博' },
+      { code: 'BILIBILI', name: 'B站' }, { code: 'TAOBAO', name: '淘宝' }, { code: 'JD', name: '京东' }, { code: 'PDD', name: '拼多多' },
+      { code: 'MEITUAN', name: '美团' }, { code: 'OTHER', name: '其他' }
+    ]},
+    { name: '账号状态', items: [
+      { code: 'ACTIVE', name: '使用中' }, { code: 'NORMAL', name: '正常' }, { code: 'IDLE', name: '闲置' },
+      { code: 'ABNORMAL', name: '异常' }, { code: 'FROZEN', name: '冻结' }, { code: 'CANCELLED', name: '已注销' }
+    ]},
+    { name: '风险等级', items: [
+      { code: 'HIGH', name: '高' }, { code: 'MEDIUM', name: '中' }, { code: 'LOW', name: '低' }
+    ]},
+    { name: 'SIM类型', items: [
+      { code: 'SINGLE', name: '单卡' }, { code: 'DUAL', name: '双卡' }
+    ]}
+  ]
+};
+
+function switchSettingsTab(el, tabName) {
+  document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.settings-tab-content').forEach(c => c.style.display = 'none');
+  document.getElementById('settings-' + tabName).style.display = 'block';
+  if (tabName === 'user') renderSettingsUsers();
+  if (tabName === 'role') renderSettingsRoles();
+  if (tabName === 'dept') renderSettingsDepts();
+  if (tabName === 'dict') renderSettingsDicts();
+}
+
+function renderSettingsUsers() {
+  const tbody = document.getElementById('settingsUserBody');
+  tbody.innerHTML = SETTINGS_DATA.users.map((u, idx) => `<tr>
+    <td>${u.name}</td>
+    <td style="font-family:var(--font-mono);font-size:12px;">${u.email}</td>
+    <td>${u.dept}</td>
+    <td><span class="badge badge-primary">${u.role}</span></td>
+    <td>${u.status === 'active' ? '<span class="badge badge-success">在职</span>' : '<span class="badge badge-idle">离职</span>'}</td>
+    <td>
+      <button class="btn btn-ghost btn-sm" onclick="showToast('编辑用户 ${u.name} 功能开发中', 'info')"><i class="fas fa-edit"></i> 编辑</button>
+      <button class="btn btn-ghost btn-sm" onclick="showToast('${u.status === 'active' ? '已禁用' : '已启用'}用户 ${u.name}', '${u.status === 'active' ? 'warning' : 'success'}')">${u.status === 'active' ? '<i class="fas fa-ban"></i> 禁用' : '<i class="fas fa-check"></i> 启用'}</button>
+    </td>
+  </tr>`).join('');
+  document.getElementById('settingsUserCount').textContent = `共 ${SETTINGS_DATA.users.length} 人`;
+}
+
+let selectedRoleIdx = -1;
+function renderSettingsRoles() {
+  const tbody = document.getElementById('settingsRoleBody');
+  tbody.innerHTML = SETTINGS_DATA.roles.map((r, idx) => `<tr class="clickable ${selectedRoleIdx === idx ? 'selected' : ''}" onclick="showRolePermissions(${idx})">
+    <td>${r.name}</td>
+    <td style="font-family:var(--font-mono);font-size:12px;color:var(--color-text-secondary);">${r.code}</td>
+    <td style="text-align:center;font-weight:500;">${r.users}</td>
+    <td style="color:var(--color-text-secondary);font-size:12px;">${r.desc}</td>
+  </tr>`).join('');
+  if (selectedRoleIdx >= 0) showRolePermissions(selectedRoleIdx);
+}
+
+function showRolePermissions(idx) {
+  selectedRoleIdx = idx;
+  const r = SETTINGS_DATA.roles[idx];
+  document.querySelectorAll('#settingsRoleBody tr').forEach((tr, i) => tr.classList.toggle('selected', i === idx));
+  const container = document.getElementById('settingsRolePermissions');
+  container.style.display = 'block';
+  document.getElementById('settingsRolePermTitle').textContent = `${r.name} — 权限清单`;
+  document.getElementById('settingsRolePermList').innerHTML = SETTINGS_DATA.perms.map(p =>
+    `<label style="display:flex; align-items:center; gap:6px; padding:6px 12px; border:1px solid var(--color-border); border-radius:var(--radius-md); cursor:pointer; font-size:13px; background:var(--color-gray-50);">
+      <input type="checkbox" checked disabled style="accent-color:var(--color-primary);"> ${p}
+    </label>`
+  ).join('');
+}
+
+function renderSettingsDepts() {
+  function renderTree(nodes, depth) {
+    return nodes.map(n => {
+      const hasChildren = n.children && n.children.length > 0;
+      const padding = depth * 28;
+      return `<li>
+        <div class="dept-tree-item" style="padding-left:${12 + padding}px;">
+          <i class="fas ${hasChildren ? 'fa-folder-open' : 'fa-folder'}"></i>
+          <span class="dept-name">${n.name}</span>
+          <span class="dept-meta">${n.count}人 · 负责人: ${n.head}</span>
+        </div>
+        ${hasChildren ? `<ul class="dept-tree-children">${renderTree(n.children, depth + 1)}</ul>` : ''}
+      </li>`;
+    }).join('');
+  }
+  document.getElementById('settingsDeptTree').innerHTML = renderTree(SETTINGS_DATA.depts, 0);
+}
+
+function renderSettingsDicts() {
+  document.getElementById('settingsDictGrid').innerHTML = SETTINGS_DATA.dicts.map(d => `
+    <div class="dict-card">
+      <h4>${d.name} <span style="font-size:12px;font-weight:400;color:var(--color-text-secondary);">(${d.items.length}项)</span></h4>
+      ${d.items.map(item => `<div class="dict-item"><span>${item.name}</span><span class="dict-code">${item.code}</span></div>`).join('')}
+    </div>
+  `).join('');
+}
+
+// ===== INIT =====
+updateKPI();
+renderDeviceTable();
+renderPhoneTable();
+renderAccountTable();
+renderLogTable();
+renderRiskTable();
+renderSettingsUsers();
+document.getElementById('filterPlatform').style.display = 'none';
+</script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+sequenceDiagram
+    title 新增设备流程
+
+    actor User as 用户(账号管理员)
+    participant FE as 前端 UI
+    participant Store as Zustand Store
+    participant API as API Client
+    participant Auth as Auth Middleware
+    participant Perm as Permission Middleware
+    participant Audit as AuditLog Middleware
+    participant DeviceS as DeviceService
+    participant RiskE as RiskEngine
+    participant DB as PostgreSQL
+
+    User->>FE: 点击「新增设备」按钮
+    FE->>FE: 打开 DeviceFormModal
+    User->>FE: 填写表单字段
+    User->>FE: 点击「保存」
+    FE->>FE: React Hook Form 校验
+    alt 校验失败
+        FE->>User: 显示字段错误提示
+    else 校验通过
+        FE->>API: POST /api/devices { body }
+        API->>Auth: JWT Token 校验
+        Auth->>Auth: 解码 Token，附加 user 到 req
+        Auth->>Perm: 校验 super_admin / account_admin 角色
+        Perm->>Audit: 通过，进入审计中间件
+        Audit->>Audit: 生成操作上下文
+        Audit->>DeviceS: createDevice(data, operatorId)
+        DeviceS->>DB: prisma.device.create({ data })
+        DeviceS->>DB: 自动生成 device_code (DEV-YYYYMMDD-XXXXX)
+        DeviceS-->>Audit: 返回创建后的 Device
+        Audit->>Audit: 记录操作日志 (action: CREATE_DEVICE)
+        Audit->>RiskE: triggerScan('device', newDeviceId)
+        RiskE->>RiskE: 检查 4 条设备风险规则
+        RiskE->>DB: upsert entity_risks
+        RiskE-->>Audit: 完成
+        Audit-->>API: 返回统一响应
+        API-->>FE: { code: 200, data: device }
+        FE->>Store: 更新选择状态
+        FE->>FE: 关闭弹窗，显示 Toast 通知
+        FE->>FE: 刷新设备列表 (React Query invalidate)
+    end

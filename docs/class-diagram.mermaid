@@ -1,0 +1,288 @@
+classDiagram
+    %% ── 前端类型 ──
+    class DeviceDTO {
+        +number id
+        +string device_code
+        +string device_name
+        +string brand_model
+        +string imei
+        +string sim_type  "single | dual"
+        +string owner_subject
+        +number department_id
+        +number owner_user_id
+        +number current_user_id
+        +string status
+        +string risk_level
+        +string remark
+        +Date created_at
+        +Date updated_at
+        +PhoneNumberDTO[] phone_numbers
+        +string department_name
+        +string owner_name
+        +string current_user_name
+    }
+
+    class PhoneNumberDTO {
+        +number id
+        +number device_id
+        +string slot_type  "sim1 | sim2"
+        +string phone_number
+        +string carrier
+        +boolean is_primary
+        +number monthly_fee
+        +string plan_type
+        +number owner_user_id
+        +string status
+        +string remark
+        +Date created_at
+        +Date updated_at
+        +string device_name
+        +string owner_name
+        +InternetAccountDTO[] internet_accounts
+    }
+
+    class InternetAccountDTO {
+        +number id
+        +number phone_number_id
+        +string account_code
+        +string platform
+        +string account_name
+        +string login_account
+        +string bind_phone
+        +string bind_email
+        +string owner_subject
+        +string purpose
+        +number monthly_fee
+        +Date expire_at
+        +number department_id
+        +number owner_user_id
+        +number current_user_id
+        +string permission_status
+        +string status
+        +string risk_level
+        +string remark
+        +Date created_at
+        +Date updated_at
+        +string department_name
+        +string owner_name
+        +string current_user_name
+    }
+
+    class SensitiveInfoDTO {
+        +number id
+        +number account_id
+        +string login_password  "明文(仅查看时)"
+        +string real_name_info  "明文(仅查看时)"
+        +Date password_updated_at
+        +boolean has_password
+        +boolean has_real_name
+    }
+
+    class OperationLogDTO {
+        +number id
+        +number operator_id
+        +string operator_name
+        +string action_type
+        +string target_type
+        +number target_id
+        +string target_name
+        +string before_data
+        +string after_data
+        +string ip_address
+        +string device_info
+        +Date created_at
+    }
+
+    class RiskDTO {
+        +number id
+        +string entity_type
+        +number entity_id
+        +string entity_name
+        +string risk_code
+        +string risk_title
+        +string risk_level
+        +string risk_reason
+        +string suggestion
+        +string status  "open | ignored | resolved"
+        +Date detected_at
+        +Date resolved_at
+    }
+
+    class UserDTO {
+        +number id
+        +string name
+        +string email
+        +string phone
+        +number department_id
+        +string department_name
+        +string status
+        +string[] roles
+    }
+
+    %% ── 后端 Prisma 模型 ──
+    class Device {
+        +BigInt id
+        +String device_code
+        +String device_name
+        +String brand_model
+        +String imei
+        +String sim_type
+        +String owner_subject
+        +BigInt department_id
+        +BigInt owner_user_id
+        +BigInt current_user_id
+        +String status
+        +String risk_level
+        +String remark
+        +BigInt created_by
+        +BigInt updated_by
+        +DateTime created_at
+        +DateTime updated_at
+        +DateTime deleted_at
+        +PhoneNumber[] phone_numbers
+    }
+
+    class PhoneNumber {
+        +BigInt id
+        +BigInt device_id
+        +String slot_type
+        +String phone_number
+        +String carrier
+        +Boolean is_primary
+        +Decimal monthly_fee
+        +String plan_type
+        +BigInt owner_user_id
+        +String status
+        +String remark
+        +DateTime created_at
+        +DateTime updated_at
+        +Device device
+        +InternetAccount[] internet_accounts
+    }
+
+    class InternetAccount {
+        +BigInt id
+        +BigInt phone_number_id
+        +String account_code
+        +String platform
+        +String account_name
+        +String login_account
+        +String bind_phone
+        +String bind_email
+        +String owner_subject
+        +String purpose
+        +String service_provider
+        +Decimal monthly_fee
+        +DateTime expire_at
+        +BigInt department_id
+        +BigInt owner_user_id
+        +BigInt current_user_id
+        +String permission_status
+        +String status
+        +String risk_level
+        +String remark
+        +BigInt created_by
+        +BigInt updated_by
+        +DateTime created_at
+        +DateTime updated_at
+        +AccountSensitiveInfo sensitive_info
+    }
+
+    class AccountSensitiveInfo {
+        +BigInt id
+        +BigInt account_id
+        +String login_password_encrypted
+        +String real_name_info_encrypted
+        +String backup_info_encrypted
+        +DateTime password_updated_at
+        +DateTime created_at
+        +DateTime updated_at
+    }
+
+    class OperationLog {
+        +BigInt id
+        +BigInt operator_id
+        +String action_type
+        +String target_type
+        +BigInt target_id
+        +Json before_data
+        +Json after_data
+        +String ip_address
+        +String device_info
+        +String remark
+        +DateTime created_at
+    }
+
+    class EntityRisk {
+        +BigInt id
+        +String entity_type
+        +BigInt entity_id
+        +String risk_code
+        +String risk_title
+        +String risk_level
+        +String risk_reason
+        +String suggestion
+        +String status
+        +DateTime detected_at
+        +DateTime resolved_at
+    }
+
+    class User {
+        +BigInt id
+        +String name
+        +String email
+        +String phone
+        +BigInt department_id
+        +String status
+        +DateTime created_at
+        +DateTime updated_at
+        +Department department
+        +UserRole[] user_roles
+    }
+
+    class Department {
+        +BigInt id
+        +String name
+        +BigInt manager_user_id
+        +DateTime created_at
+        +DateTime updated_at
+    }
+
+    class Role {
+        +BigInt id
+        +String code  "super_admin|boss|account_admin|dept_manager|employee"
+        +String name
+    }
+
+    class UserRole {
+        +BigInt id
+        +BigInt user_id
+        +BigInt role_id
+    }
+
+    %% ── 服务类 ──
+    class RiskEngine {
+        +runFullScan() RiskResult[]
+        +runForEntity(entityType, entityId) RiskResult[]
+        +checkDeviceRules(device) RiskResult[]
+        +checkPhoneRules(phone) RiskResult[]
+        +checkAccountRules(account) RiskResult[]
+    }
+
+    class SensitiveService {
+        +viewSensitive(accountId, userId) SensitiveResult
+        +copySensitive(accountId, field, userId) string
+        +updateSensitive(accountId, data) void
+        +encrypt(plaintext) string
+        +decrypt(ciphertext) string
+    }
+
+    %% ── 关系 ──
+    Device "1" --> "*" PhoneNumber : has
+    PhoneNumber "*" --> "1" Device : belongs to
+    PhoneNumber "1" --> "*" InternetAccount : has
+    InternetAccount "*" --> "1" PhoneNumber : belongs to
+    InternetAccount "1" --> "1" AccountSensitiveInfo : has
+    User "1" --> "*" UserRole : has
+    UserRole "*" --> "1" Role : assigns
+    User "*" --> "1" Department : belongs to
