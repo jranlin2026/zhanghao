@@ -1,5 +1,6 @@
 import { prisma } from '../config/db';
 import { AuthUser, canReadAll, canReadEntity, requireWritable } from './access';
+import { sanitizeAuditData } from './audit';
 import { maskLoginAccount, maskPhoneNumber, normalizeDecimal } from './format';
 import { getAccountRiskLevel, getDeviceRiskLevel, getPhoneRiskLevel } from './risk';
 import { validateAccountPayload, validateDevicePayload, validatePhonePayload } from './validation';
@@ -43,7 +44,7 @@ async function writeLog(user: Express.Request['user'], action: string, targetTyp
       action_type: action,
       target_type: targetType,
       target_id: targetId,
-      after_data: after === undefined ? undefined : JSON.parse(JSON.stringify(after)),
+      after_data: after === undefined ? undefined : JSON.parse(JSON.stringify(sanitizeAuditData(after))),
     },
   });
 }
