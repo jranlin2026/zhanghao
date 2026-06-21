@@ -2,6 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import { prisma } from './config/db';
 import { env } from './config/env';
 import { errorHandler } from './middleware/errorHandler';
 import routes from './routes';
@@ -38,8 +39,13 @@ app.use(
   }),
 );
 
-app.get('/api/health', (_req, res) => {
-  res.json({ code: 200, data: { status: 'ok', timestamp: new Date().toISOString() }, message: 'success' });
+app.get('/api/health', async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ code: 200, data: { status: 'ok', database: 'connected', timestamp: new Date().toISOString() }, message: 'success' });
+  } catch {
+    res.status(503).json({ code: 503, data: { status: 'degraded', database: 'disconnected', timestamp: new Date().toISOString() }, message: 'database unavailable' });
+  }
 });
 
 app.use('/api', routes);
