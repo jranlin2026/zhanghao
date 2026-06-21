@@ -1,0 +1,11 @@
+.git
+.workbuddy
+node_modules
+dist
+build
+coverage
+*.log
+*.tsbuildinfo
+.env
+.env.*
+!backend/.env.example
