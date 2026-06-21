@@ -1,6 +1,7 @@
 import { prisma } from '../config/db';
 import { AuthUser, canReadAll, canReadEntity, requireWritable } from './access';
 import { toAuditJson } from './audit';
+import { createAssetCode } from './code';
 import { maskLoginAccount, maskPhoneNumber, normalizeDecimal } from './format';
 import { getAccountRiskLevel, getDeviceRiskLevel, getPhoneRiskLevel } from './risk';
 import { validateAccountPayload, validateDevicePayload, validatePhonePayload } from './validation';
@@ -225,7 +226,7 @@ export const assetsService = {
     validateDevicePayload(data);
     const created = await prisma.device.create({
       data: {
-        device_code: `DEV-${Date.now()}`,
+        device_code: createAssetCode('DEV'),
         device_name: data.device_name,
         brand_model: data.brand_model,
         imei: data.imei,
@@ -389,7 +390,7 @@ export const assetsService = {
     const created = await prisma.internetAccount.create({
       data: {
         phone_number_id: Number(data.phone_number_id),
-        account_code: `ACC-${Date.now()}`,
+        account_code: createAssetCode('ACC'),
         platform: data.platform,
         account_name: data.account_name,
         login_account: data.login_account,
