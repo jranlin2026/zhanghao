@@ -5,6 +5,10 @@ export function sanitizeAuditData<T>(value: T): T {
     return value.map((item) => sanitizeAuditData(item)) as T;
   }
 
+  if (value instanceof Date) {
+    return value;
+  }
+
   if (value && typeof value === 'object') {
     return Object.fromEntries(
       Object.entries(value).map(([key, item]) => [
@@ -15,4 +19,12 @@ export function sanitizeAuditData<T>(value: T): T {
   }
 
   return value;
+}
+
+export function toAuditJson(value: unknown) {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  return JSON.parse(JSON.stringify(sanitizeAuditData(value)));
 }
