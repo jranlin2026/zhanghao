@@ -329,7 +329,7 @@ export const assetsService = {
 
   async updatePhone(user: Express.Request['user'], id: number, data: any) {
     requireWritable(userAccess(user));
-    validatePhonePayload(data);
+    validatePhonePayload(data, { partial: true });
     const before = await prisma.phoneNumber.findUnique({ where: { id }, include: phoneInclude() });
     const updated = await prisma.phoneNumber.update({
       where: { id },
@@ -418,7 +418,7 @@ export const assetsService = {
 
   async updateAccount(user: Express.Request['user'], id: number, data: any) {
     requireWritable(userAccess(user));
-    validateAccountPayload(data);
+    validateAccountPayload(data, { partial: true });
     const before = await prisma.internetAccount.findUnique({ where: { id }, include: accountInclude() });
     const updated = await prisma.internetAccount.update({
       where: { id },
