@@ -1,4 +1,4 @@
-import { authenticateLocalUser } from './devData';
+import { authenticateLocalUser, getLocalUserProfile } from './devData';
 
 export const authService = {
   async login(name: string, password: string) {
@@ -6,9 +6,6 @@ export const authService = {
   },
 
   async getProfile(userId: number) {
-    if (userId !== 1) {
-      throw new Error('用户不存在');
-    }
-    return (await authenticateLocalUser('admin', 'admin123')).user;
+    return getLocalUserProfile(userId);
   },
 };

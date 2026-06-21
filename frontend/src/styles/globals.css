@@ -1,116 +1,15 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* ── DESIGN.md CSS 变量体系 ── */
-:root {
-  /* Backgrounds */
-  --color-bg-primary: #F7F8FA;
-  --color-bg-secondary: #F0F1F3;
-  --color-surface: #FFFFFF;
-  --color-surface-hover: #F3F4F6;
-  --color-surface-elevated: #FFFFFF;
-
-  /* Primary Blue */
-  --color-primary: #2B6CB0;
-  --color-primary-hover: #1A4F8A;
-  --color-primary-active: #0F3A6B;
-  --color-primary-subtle: #EBF1FA;
-  --color-primary-muted: rgba(43, 108, 176, 0.12);
-
-  /* Neutral Gray */
-  --color-gray-50: #F9FAFB;
-  --color-gray-100: #F3F4F6;
-  --color-gray-200: #E5E7EB;
-  --color-gray-300: #D1D5DB;
-  --color-gray-400: #9CA3AF;
-  --color-gray-500: #6B7280;
-  --color-gray-600: #4B5563;
-  --color-gray-700: #374151;
-  --color-gray-800: #1F2937;
-  --color-gray-900: #111827;
-
-  /* Semantic Colors */
-  --color-danger: #DC2626;
-  --color-danger-bg: #FEF2F2;
-  --color-warning: #D97706;
-  --color-warning-bg: #FFFBEB;
-  --color-success: #059669;
-  --color-success-bg: #ECFDF5;
-  --color-idle: #9CA3AF;
-  --color-idle-bg: #F3F4F6;
-  --color-info: #2563EB;
-  --color-info-bg: #EFF6FF;
-
-  /* Masked Field */
-  --color-masked-bg: #F3F4F6;
-  --color-masked-text: #9CA3AF;
-  --color-masked-border: #E5E7EB;
-  --color-revealed-indicator: #DC2626;
-
-  /* Text Colors */
-  --color-text-primary: #1F2937;
-  --color-text-secondary: #6B7280;
-  --color-text-tertiary: #9CA3AF;
-  --color-text-on-primary: #FFFFFF;
-  --color-text-link: #2B6CB0;
-
-  /* Borders */
-  --color-border: #E5E7EB;
-  --color-border-strong: #D1D5DB;
-  --color-divider: #F0F1F3;
-
-  /* Spacing */
-  --space-2xs: 4px;
-  --space-xs: 8px;
-  --space-sm: 12px;
-  --space-md: 16px;
-  --space-lg: 20px;
-  --space-xl: 24px;
-  --space-2xl: 32px;
-  --space-3xl: 48px;
-  --space-4xl: 64px;
-
-  /* Typography */
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', 'Menlo', monospace;
-
-  /* Radius */
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;
-  --radius-xl: 12px;
-  --radius-pill: 16px;
-
-  /* Shadows */
-  --shadow-none: none;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
-  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
-  --shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.15);
-  --shadow-sticky: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-/* ── 全局基础样式 ── */
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-html {
-  font-size: 16px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
+html,
 body {
-  font-family: var(--font-sans);
-  color: var(--color-text-primary);
-  background-color: var(--color-bg-primary);
-  line-height: 1.5;
   margin: 0;
-  padding: 0;
+  min-height: 100%;
+  background: #f7f8fa;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 #root {
@@ -131,34 +30,5 @@ body {
   place-content: center;
   gap: 8px;
   text-align: center;
-}
-
-/* 纯黑文字替换为 #1F2937 */
-h1, h2, h3, h4, h5, h6, p, span, div {
-  color: var(--color-text-primary);
-}
-
-/* 表格全局样式 */
-table {
-  border-collapse: collapse;
-  width: 100%;
-}
-
-/* 滚动条样式 */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-gray-300);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-gray-400);
+  color: #1f2937;
 }

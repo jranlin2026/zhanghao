@@ -7,7 +7,9 @@ function App() {
     return (
       <main className="prototype-fallback">
         <h1>V2 原型加载失败</h1>
-        <p>请确认 <code>/prototype-v2.html</code> 已存在于前端 public 目录。</p>
+        <p>
+          请确认 <code>/prototype-v2.html</code> 已存在于前端 public 目录。
+        </p>
       </main>
     );
   }

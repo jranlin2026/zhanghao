@@ -1,5 +1,4 @@
 import { signToken } from '../config/jwt';
-import type { PaginatedResult } from '../utils/pagination';
 
 type LocalUser = {
   id: number;
@@ -9,7 +8,7 @@ type LocalUser = {
   phone: string;
   department_id: number;
   department_name: string;
-  status: string;
+  status: 'active' | 'disabled';
   roles: string[];
 };
 
@@ -27,8 +26,8 @@ type LocalDevice = {
   owner_name: string | null;
   current_user_id: number | null;
   current_user_name: string | null;
-  status: string;
-  risk_level: string;
+  status: '使用中' | '闲置';
+  risk_level: 'none' | 'low' | 'medium' | 'high';
   remark: string | null;
   created_at: string;
   updated_at: string;
@@ -41,6 +40,12 @@ type LocalDevice = {
   }>;
 };
 
+type Pagination = {
+  page: number;
+  pageSize: number;
+  total: number;
+};
+
 const localUsers: LocalUser[] = [
   {
     id: 1,
@@ -49,7 +54,7 @@ const localUsers: LocalUser[] = [
     email: 'admin@company.com',
     phone: '13800000001',
     department_id: 1,
-    department_name: '技术部',
+    department_name: '管理部',
     status: 'active',
     roles: ['super_admin', 'account_admin'],
   },
@@ -58,8 +63,8 @@ const localUsers: LocalUser[] = [
 const localDevices: LocalDevice[] = [
   {
     id: 1,
-    device_code: 'DEV-20260621-00001',
-    device_name: '直播运营工作机',
+    device_code: 'DEV-20260601-00001',
+    device_name: '王伟工作机',
     brand_model: 'iPhone 14 Pro',
     imei: '356789012345671',
     sim_type: 'dual',
@@ -69,11 +74,11 @@ const localDevices: LocalDevice[] = [
     owner_user_id: 1,
     owner_name: '管理员',
     current_user_id: 1,
-    current_user_name: '管理员',
-    status: '启用中',
+    current_user_name: '王伟',
+    status: '使用中',
     risk_level: 'none',
     remark: null,
-    created_at: new Date('2026-06-19T09:00:00+08:00').toISOString(),
+    created_at: new Date('2026-06-01T09:00:00+08:00').toISOString(),
     updated_at: new Date('2026-06-21T10:00:00+08:00').toISOString(),
     phone_numbers: [
       {
@@ -86,25 +91,18 @@ const localDevices: LocalDevice[] = [
           { id: 2, platform: '抖音', account_name: '极享商业中台' },
         ],
       },
-      {
-        id: 2,
-        slot_type: 'sim2',
-        phone_number: '18687654321',
-        carrier: '中国联通',
-        internet_accounts: [{ id: 3, platform: '小红书', account_name: '品牌种草号' }],
-      },
     ],
   },
   {
     id: 2,
-    device_code: 'DEV-20260621-00002',
-    device_name: '闲置测试机',
+    device_code: 'DEV-20260601-00002',
+    device_name: '直播专用机',
     brand_model: 'Xiaomi 13',
     imei: '867890123456782',
     sim_type: 'single',
     owner_subject: '公司',
     department_id: 2,
-    department_name: '技术部',
+    department_name: '直播部',
     owner_user_id: null,
     owner_name: null,
     current_user_id: null,
@@ -112,11 +110,11 @@ const localDevices: LocalDevice[] = [
     status: '闲置',
     risk_level: 'high',
     remark: '缺少负责人，待盘点',
-    created_at: new Date('2026-06-19T11:00:00+08:00').toISOString(),
+    created_at: new Date('2026-06-01T11:00:00+08:00').toISOString(),
     updated_at: new Date('2026-06-20T15:30:00+08:00').toISOString(),
     phone_numbers: [
       {
-        id: 3,
+        id: 2,
         slot_type: 'sim1',
         phone_number: '17711223344',
         carrier: '中国电信',
@@ -126,7 +124,12 @@ const localDevices: LocalDevice[] = [
   },
 ];
 
-export async function authenticateLocalUser(name: string, password: string) {
+function toPublicUser(user: LocalUser) {
+  const { password: _password, ...safeUser } = user;
+  return safeUser;
+}
+
+export function authenticateLocalUser(name: string, password: string) {
   const user = localUsers.find((item) => item.name === name && item.status === 'active');
   if (!user) {
     throw new Error('用户不存在');
@@ -135,17 +138,27 @@ export async function authenticateLocalUser(name: string, password: string) {
     throw new Error('密码错误');
   }
 
-  const { password: _password, ...safeUser } = user;
   return {
     token: signToken({ userId: user.id, name: user.name, roles: user.roles }),
-    user: safeUser,
+    user: toPublicUser(user),
   };
 }
 
-export function listLocalDevices(params: { page?: number; pageSize?: number; search?: string } = {}): PaginatedResult<LocalDevice> {
+export function getLocalUserProfile(userId: number) {
+  const user = localUsers.find((item) => item.id === userId);
+  if (!user) {
+    throw new Error('用户不存在');
+  }
+  return toPublicUser(user);
+}
+
+export function listLocalDevices(params: { page?: unknown; pageSize?: unknown; search?: unknown } = {}): {
+  data: LocalDevice[];
+  pagination: Pagination;
+} {
   const page = Math.max(1, Number(params.page) || 1);
   const pageSize = Math.min(100, Math.max(1, Number(params.pageSize) || 50));
-  const keyword = params.search?.trim().toLowerCase();
+  const keyword = typeof params.search === 'string' ? params.search.trim().toLowerCase() : '';
   const filtered = keyword
     ? localDevices.filter((device) => {
         const haystack = [device.device_code, device.device_name, device.brand_model, device.imei].join(' ').toLowerCase();
@@ -160,10 +173,14 @@ export function listLocalDevices(params: { page?: number; pageSize?: number; sea
   };
 }
 
+export function getLocalDeviceById(id: number) {
+  return localDevices.find((device) => device.id === id) ?? null;
+}
+
 export function getLocalDeviceStats() {
   return {
     total: localDevices.length,
-    active: localDevices.filter((device) => device.status === '启用中').length,
+    active: localDevices.filter((device) => device.status === '使用中').length,
     idle: localDevices.filter((device) => device.status === '闲置').length,
     highRisk: localDevices.filter((device) => device.risk_level === 'high').length,
     noOwner: localDevices.filter((device) => !device.owner_user_id).length,
