@@ -49,6 +49,9 @@ app.get('/api/health', async (_req, res) => {
 });
 
 app.use('/api', routes);
+app.use('/api', (_req, res) => {
+  res.status(404).json({ code: 404, data: null, message: '接口不存在' });
+});
 app.use(errorHandler);
 
 export default app;
