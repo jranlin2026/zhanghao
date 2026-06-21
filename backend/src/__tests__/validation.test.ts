@@ -22,4 +22,9 @@ describe('asset payload validation', () => {
     expect(() => validatePhonePayload({ carrier: '中国移动' }, { partial: true })).not.toThrow();
     expect(() => validateAccountPayload({ account_name: '新名称' }, { partial: true })).not.toThrow();
   });
+
+  it('rejects invalid monthly fees', () => {
+    expect(() => validatePhonePayload({ device_id: 1, phone_number: '13912345678', carrier: '中国移动', monthly_fee: -1 })).toThrow('月费必须是非负数字');
+    expect(() => validateAccountPayload({ phone_number_id: 1, platform: '微信', account_name: '服务号', login_account: 'svc', monthly_fee: 'abc' })).toThrow('月费必须是非负数字');
+  });
 });

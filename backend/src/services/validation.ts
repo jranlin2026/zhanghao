@@ -22,6 +22,19 @@ function requireForCreateOrPresent(payload: Payload, key: string, label: string,
   requireField(payload, key, label);
 }
 
+function validateNonNegativeNumber(payload: Payload, key: string, label: string): void {
+  if (!(key in payload) || isBlank(payload[key])) {
+    return;
+  }
+
+  const value = Number(payload[key]);
+  if (!Number.isFinite(value) || value < 0) {
+    const error = new Error(`${label}必须是非负数字`) as Error & { statusCode?: number };
+    error.statusCode = 400;
+    throw error;
+  }
+}
+
 export function validateDevicePayload(payload: Payload, options: ValidationOptions = {}): void {
   requireField(payload, 'device_name', '设备名称');
   requireField(payload, 'brand_model', '品牌型号');
@@ -32,6 +45,7 @@ export function validatePhonePayload(payload: Payload, options: ValidationOption
   requireForCreateOrPresent(payload, 'device_id', '所属设备', options);
   requireForCreateOrPresent(payload, 'phone_number', '手机号', options);
   requireForCreateOrPresent(payload, 'carrier', '运营商', options);
+  validateNonNegativeNumber(payload, 'monthly_fee', '月费');
 }
 
 export function validateAccountPayload(payload: Payload, options: ValidationOptions = {}): void {
@@ -39,4 +53,5 @@ export function validateAccountPayload(payload: Payload, options: ValidationOpti
   requireForCreateOrPresent(payload, 'platform', '平台', options);
   requireForCreateOrPresent(payload, 'account_name', '账号名称', options);
   requireForCreateOrPresent(payload, 'login_account', '登录账号', options);
+  validateNonNegativeNumber(payload, 'monthly_fee', '月费');
 }
