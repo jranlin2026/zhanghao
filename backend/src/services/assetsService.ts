@@ -142,6 +142,26 @@ function accountAccessShape(account: any) {
   };
 }
 
+async function refreshDeviceRisk(deviceId: number) {
+  const device = await prisma.device.findUnique({
+    where: { id: deviceId },
+    include: { phone_numbers: { where: { deleted_at: null } } },
+  });
+  if (device) {
+    await prisma.device.update({ where: { id: deviceId }, data: { risk_level: getDeviceRiskLevel(device) } });
+  }
+}
+
+async function refreshPhoneRisk(phoneId: number) {
+  const phone = await prisma.phoneNumber.findUnique({
+    where: { id: phoneId },
+    include: { internet_accounts: { where: { deleted_at: null } } },
+  });
+  if (phone) {
+    await prisma.phoneNumber.update({ where: { id: phoneId }, data: { risk_level: getPhoneRiskLevel(phone) } });
+  }
+}
+
 export const assetsService = {
   async meta(user: Express.Request['user']) {
     const [departments, users, devices, phones] = await Promise.all([
@@ -291,6 +311,7 @@ export const assetsService = {
     });
     const risk_level = getPhoneRiskLevel(created);
     const updated = await prisma.phoneNumber.update({ where: { id: created.id }, data: { risk_level }, include: phoneInclude() });
+    await refreshDeviceRisk(updated.device_id);
     await writeLog(user, 'create', 'phone_number', updated.id, updated);
     return serializePhone(updated);
   },
@@ -315,6 +336,7 @@ export const assetsService = {
     });
     const risk_level = getPhoneRiskLevel(updated);
     const withRisk = await prisma.phoneNumber.update({ where: { id }, data: { risk_level }, include: phoneInclude() });
+    await refreshDeviceRisk(withRisk.device_id);
     await writeLog(user, 'update', 'phone_number', id, withRisk);
     return serializePhone(withRisk);
   },
@@ -322,6 +344,7 @@ export const assetsService = {
   async deletePhone(user: Express.Request['user'], id: number) {
     requireWritable(userAccess(user));
     const deleted = await prisma.phoneNumber.update({ where: { id }, data: { status: '已注销', deleted_at: new Date() } });
+    await refreshDeviceRisk(deleted.device_id);
     await writeLog(user, 'delete', 'phone_number', id, deleted);
     return deleted;
   },
@@ -369,6 +392,7 @@ export const assetsService = {
     });
     const risk_level = getAccountRiskLevel(created);
     const updated = await prisma.internetAccount.update({ where: { id: created.id }, data: { risk_level }, include: accountInclude() });
+    await refreshPhoneRisk(updated.phone_number_id);
     await writeLog(user, 'create', 'internet_account', updated.id, updated);
     return serializeAccount(updated);
   },
@@ -399,6 +423,7 @@ export const assetsService = {
     });
     const risk_level = getAccountRiskLevel(updated);
     const withRisk = await prisma.internetAccount.update({ where: { id }, data: { risk_level }, include: accountInclude() });
+    await refreshPhoneRisk(withRisk.phone_number_id);
     await writeLog(user, 'update', 'internet_account', id, withRisk);
     return serializeAccount(withRisk);
   },
@@ -406,6 +431,7 @@ export const assetsService = {
   async deleteAccount(user: Express.Request['user'], id: number) {
     requireWritable(userAccess(user));
     const deleted = await prisma.internetAccount.update({ where: { id }, data: { status: '已注销', deleted_at: new Date() } });
+    await refreshPhoneRisk(deleted.phone_number_id);
     await writeLog(user, 'delete', 'internet_account', id, deleted);
     return deleted;
   },
