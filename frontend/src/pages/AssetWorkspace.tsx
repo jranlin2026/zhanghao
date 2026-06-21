@@ -84,6 +84,7 @@ export function AssetWorkspace({ user, onLogout }: Props) {
   const [statusFilter, setStatusFilter] = useState('');
   const [riskFilter, setRiskFilter] = useState('');
   const [items, setItems] = useState<AssetEntity[]>([]);
+  const [total, setTotal] = useState(0);
   const [logs, setLogs] = useState<OperationLog[]>([]);
   const [risks, setRisks] = useState<RiskItem[]>([]);
   const [selected, setSelected] = useState<AssetEntity | null>(null);
@@ -102,6 +103,7 @@ export function AssetWorkspace({ user, onLogout }: Props) {
     try {
       const [listResponse, statsResponse, metaResponse] = await Promise.all([api.list(view, { search, status: statusFilter, riskLevel: riskFilter }), api.stats(), api.meta()]);
       setItems(listResponse.data);
+      setTotal(listResponse.pagination.total);
       setStats(statsResponse.data);
       setMeta(metaResponse.data);
       setSelected((current) => {
@@ -232,6 +234,7 @@ export function AssetWorkspace({ user, onLogout }: Props) {
             <section className="table-wrap">
               <h1>{title}</h1>
               {loading ? <div className="empty">加载中...</div> : <AssetTable view={view} items={items} selected={selected} onSelect={setSelected} />}
+              <div className="table-footer">共 {total} 条</div>
             </section>
           </>
         )}
