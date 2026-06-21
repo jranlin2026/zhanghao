@@ -294,7 +294,7 @@ export const assetsService = {
 
   async createPhone(user: Express.Request['user'], data: any) {
     requireWritable(userAccess(user));
-    validatePhonePayload(data);
+    validatePhonePayload(data, { partial: true });
     const created = await prisma.phoneNumber.create({
       data: {
         device_id: Number(data.device_id),
@@ -368,7 +368,7 @@ export const assetsService = {
 
   async createAccount(user: Express.Request['user'], data: any) {
     requireWritable(userAccess(user));
-    validateAccountPayload(data);
+    validateAccountPayload(data, { partial: true });
     const created = await prisma.internetAccount.create({
       data: {
         phone_number_id: Number(data.phone_number_id),

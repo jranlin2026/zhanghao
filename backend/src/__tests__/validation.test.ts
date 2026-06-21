@@ -17,4 +17,9 @@ describe('asset payload validation', () => {
     expect(() => validateAccountPayload({ phone_number_id: 1, platform: '', account_name: '服务号', login_account: 'svc' })).toThrow('平台不能为空');
     expect(() => validateAccountPayload({ phone_number_id: 1, platform: '微信', account_name: '', login_account: 'svc' })).toThrow('账号名称不能为空');
   });
+
+  it('allows partial updates to omit sensitive values', () => {
+    expect(() => validatePhonePayload({ carrier: '中国移动' }, { partial: true })).not.toThrow();
+    expect(() => validateAccountPayload({ account_name: '新名称' }, { partial: true })).not.toThrow();
+  });
 });

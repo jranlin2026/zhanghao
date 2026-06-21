@@ -143,7 +143,7 @@ export function AssetWorkspace({ user, onLogout }: Props) {
   async function submitModal(values: Record<string, unknown>) {
     if (modalEntity === undefined) return;
     setError('');
-    const cleanedValues = Object.fromEntries(Object.entries(values).map(([key, value]) => [key, value === '' ? undefined : value]));
+    const cleanedValues = Object.fromEntries(Object.entries(values).filter(([, value]) => value !== ''));
     try {
       if (modalEntity) {
         await api.update(view, modalEntity.id, cleanedValues);
