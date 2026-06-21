@@ -25,4 +25,16 @@ describe('runtime env validation', () => {
       }),
     ).toThrow('PORT must be a valid port number');
   });
+
+  it('rejects short JWT secrets in production', () => {
+    expect(() =>
+      validateRuntimeEnv({
+        DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/account_asset?schema=public',
+        JWT_SECRET: 'short',
+        PORT: 3001,
+        FRONTEND_URL: 'https://asset.example.com',
+        isDev: false,
+      }),
+    ).toThrow('JWT_SECRET must be at least 32 characters in production');
+  });
 });
