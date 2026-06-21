@@ -56,6 +56,13 @@ docker compose up --build
 
 上线前必须修改 `docker-compose.yml` 中的 `JWT_SECRET` 和数据库密码。
 
+## 环境变量
+
+- `DATABASE_URL`：Postgres 连接字符串。
+- `JWT_SECRET`：JWT 签名密钥，生产环境不能使用默认值。
+- `FRONTEND_URL`：允许访问后端的前端来源，支持逗号分隔多个地址，例如 `https://asset.example.com,https://www.asset.example.com`。
+- `PORT`：后端服务端口，默认 `3001`。
+
 ## 当前范围
 
 已实现：
