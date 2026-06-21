@@ -1,6 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_DB: account_asset
       POSTGRES_USER: postgres
@@ -17,6 +18,7 @@ services:
 
   backend:
     build: ./backend
+    restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/account_asset?schema=public
       JWT_SECRET: change-this-secret-before-production
@@ -35,6 +37,7 @@ services:
 
   frontend:
     build: ./frontend
+    restart: unless-stopped
     depends_on:
       backend:
         condition: service_healthy
