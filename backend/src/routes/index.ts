@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth';
+import adminRoutes from './admin';
 import assetsRoutes from './assets';
 import authRoutes from './auth';
 import deviceRoutes from './devices';
@@ -12,6 +13,7 @@ import riskRoutes from './risks';
 const router = Router();
 
 router.use('/auth', authRoutes);
+router.use('/admin', authMiddleware, adminRoutes);
 router.use('/assets', authMiddleware, assetsRoutes);
 router.use('/devices', authMiddleware, deviceRoutes);
 router.use('/phone-numbers', authMiddleware, phoneNumberRoutes);

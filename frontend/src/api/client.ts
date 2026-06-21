@@ -1,5 +1,7 @@
 import type {
   ApiResponse,
+  AdminDepartment,
+  AdminUser,
   AssetMeta,
   Device,
   InternetAccount,
@@ -88,6 +90,42 @@ export const api = {
 
   risks() {
     return request<ListResponse<RiskItem>>('/risks');
+  },
+
+  adminUsers() {
+    return request<ApiResponse<AdminUser[]>>('/admin/users');
+  },
+
+  createAdminUser(data: Record<string, unknown>) {
+    return request<ApiResponse<AdminUser>>('/admin/users', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateAdminUser(id: number, data: Record<string, unknown>) {
+    return request<ApiResponse<AdminUser>>(`/admin/users/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  adminDepartments() {
+    return request<ApiResponse<AdminDepartment[]>>('/admin/departments');
+  },
+
+  createAdminDepartment(data: Record<string, unknown>) {
+    return request<ApiResponse<AdminDepartment>>('/admin/departments', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  updateAdminDepartment(id: number, data: Record<string, unknown>) {
+    return request<ApiResponse<AdminDepartment>>(`/admin/departments/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
   },
 
   create(view: ViewType, data: Record<string, unknown>) {

@@ -94,6 +94,28 @@ export type AssetMeta = {
   phones: MetaOption[];
 };
 
+export type AdminUser = {
+  id: number;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  role: string;
+  status: string;
+  department_id: number | null;
+  department_name: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AdminDepartment = {
+  id: number;
+  name: string;
+  manager_user_id: number | null;
+  user_count: number;
+  created_at: string;
+  updated_at: string;
+};
+
 export type OperationLog = {
   id: number;
   action_type: string;

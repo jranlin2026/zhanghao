@@ -513,3 +513,40 @@ tbody tr:hover {
   color: #6b7280;
   font-size: 13px;
 }
+
+.settings-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 18px 0 12px;
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.segmented button {
+  height: 34px;
+  border: 0;
+  background: #fff;
+  color: #4b5563;
+  padding: 0 16px;
+}
+
+.segmented button.active {
+  background: #e1ebf7;
+  color: #1f4f82;
+  font-weight: 700;
+}
+
+.settings-table {
+  min-width: 860px;
+}
+
+.compact-modal {
+  width: min(640px, calc(100vw - 48px));
+}

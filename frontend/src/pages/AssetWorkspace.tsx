@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client';
 import { AssetModal } from '../components/AssetModal';
 import type {
+  AdminDepartment,
+  AdminUser,
   AssetEntity,
   AssetMeta,
   Device,
@@ -104,6 +106,8 @@ export function AssetWorkspace({ user, onLogout }: Props) {
   const [logTotal, setLogTotal] = useState(0);
   const [risks, setRisks] = useState<RiskItem[]>([]);
   const [riskTotal, setRiskTotal] = useState(0);
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([]);
+  const [adminDepartments, setAdminDepartments] = useState<AdminDepartment[]>([]);
   const [selected, setSelected] = useState<AssetEntity | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
   const [meta, setMeta] = useState<AssetMeta | null>(null);
@@ -148,8 +152,10 @@ export function AssetWorkspace({ user, onLogout }: Props) {
       setRiskTotal(response.pagination.total);
     }
     if (section === 'settings') {
-      const response = await api.meta();
-      setMeta(response.data);
+      const [metaResponse, usersResponse, departmentsResponse] = await Promise.all([api.meta(), api.adminUsers(), api.adminDepartments()]);
+      setMeta(metaResponse.data);
+      setAdminUsers(usersResponse.data);
+      setAdminDepartments(departmentsResponse.data);
     }
   }, [section]);
 
@@ -290,7 +296,7 @@ export function AssetWorkspace({ user, onLogout }: Props) {
 
         {section === 'logs' && <LogPanel logs={logs} total={logTotal} />}
         {section === 'risks' && <RiskPanel risks={risks} total={riskTotal} />}
-        {section === 'settings' && <SettingsPanel meta={meta} />}
+        {section === 'settings' && <SettingsPanel meta={meta} users={adminUsers} departments={adminDepartments} canWrite={canWrite} onRefresh={loadSecondary} />}
       </main>
 
       <aside className="detail-panel">
@@ -416,15 +422,132 @@ function RiskPanel({ risks, total }: { risks: RiskItem[]; total: number }) {
   );
 }
 
-function SettingsPanel({ meta }: { meta: AssetMeta | null }) {
+function SettingsPanel({ meta, users, departments, canWrite, onRefresh }: { meta: AssetMeta | null; users: AdminUser[]; departments: AdminDepartment[]; canWrite: boolean; onRefresh: () => Promise<void> }) {
+  const [mode, setMode] = useState<'users' | 'departments'>('users');
+  const [editingUser, setEditingUser] = useState<AdminUser | null | undefined>(undefined);
+  const [editingDepartment, setEditingDepartment] = useState<AdminDepartment | null | undefined>(undefined);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  async function submitUser(values: Record<string, unknown>) {
+    setSaving(true);
+    setError('');
+    const cleaned = Object.fromEntries(Object.entries(values).filter(([, value]) => value !== ''));
+    try {
+      if (editingUser) {
+        await api.updateAdminUser(editingUser.id, cleaned);
+      } else {
+        await api.createAdminUser(cleaned);
+      }
+      setEditingUser(undefined);
+      await onRefresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '保存失败');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function submitDepartment(values: Record<string, unknown>) {
+    setSaving(true);
+    setError('');
+    const cleaned = Object.fromEntries(Object.entries(values).filter(([, value]) => value !== ''));
+    try {
+      if (editingDepartment) {
+        await api.updateAdminDepartment(editingDepartment.id, cleaned);
+      } else {
+        await api.createAdminDepartment(cleaned);
+      }
+      setEditingDepartment(undefined);
+      await onRefresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '保存失败');
+    } finally {
+      setSaving(false);
+    }
+  }
+
   return (
     <section className="settings-panel">
       <h1>系统设置</h1>
       <div className="settings-grid">
-        <div><strong>{meta?.users.length ?? '-'}</strong><span>用户</span></div>
-        <div><strong>{meta?.departments.length ?? '-'}</strong><span>部门</span></div>
+        <div><strong>{users.length || meta?.users.length || '-'}</strong><span>用户</span></div>
+        <div><strong>{departments.length || meta?.departments.length || '-'}</strong><span>部门</span></div>
         <div><strong>3</strong><span>角色权限</span></div>
       </div>
+      <div className="settings-toolbar">
+        <div className="segmented">
+          <button className={mode === 'users' ? 'active' : ''} onClick={() => setMode('users')}>用户</button>
+          <button className={mode === 'departments' ? 'active' : ''} onClick={() => setMode('departments')}>部门</button>
+        </div>
+        {canWrite && mode === 'users' && <button className="primary-button" onClick={() => setEditingUser(null)}>新增用户</button>}
+        {canWrite && mode === 'departments' && <button className="primary-button" onClick={() => setEditingDepartment(null)}>新增部门</button>}
+      </div>
+      {error && <div className="error-banner">{error}</div>}
+      {mode === 'users' ? (
+        <table className="settings-table">
+          <thead><tr><th>姓名</th><th>角色</th><th>状态</th><th>部门</th><th>邮箱</th><th>手机</th><th>操作</th></tr></thead>
+          <tbody>{users.map((item) => (
+            <tr key={item.id}>
+              <td>{item.name}</td><td>{item.role}</td><td><StatusBadge value={item.status === 'active' ? '启用' : '禁用'} /></td><td>{item.department_name ?? '-'}</td><td>{item.email ?? '-'}</td><td>{item.phone ?? '-'}</td>
+              <td>{canWrite ? <button className="ghost-button" onClick={() => setEditingUser(item)}>编辑</button> : '-'}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+      ) : (
+        <table className="settings-table">
+          <thead><tr><th>部门</th><th>用户数</th><th>负责人 ID</th><th>更新</th><th>操作</th></tr></thead>
+          <tbody>{departments.map((item) => (
+            <tr key={item.id}>
+              <td>{item.name}</td><td>{item.user_count}</td><td>{item.manager_user_id ?? '-'}</td><td>{formatDate(item.updated_at)}</td>
+              <td>{canWrite ? <button className="ghost-button" onClick={() => setEditingDepartment(item)}>编辑</button> : '-'}</td>
+            </tr>
+          ))}</tbody>
+        </table>
+      )}
+      {editingUser !== undefined && <UserAdminModal entity={editingUser} departments={departments} saving={saving} onClose={() => setEditingUser(undefined)} onSubmit={submitUser} />}
+      {editingDepartment !== undefined && <DepartmentAdminModal entity={editingDepartment} users={users} saving={saving} onClose={() => setEditingDepartment(undefined)} onSubmit={submitDepartment} />}
     </section>
+  );
+}
+
+function UserAdminModal({ entity, departments, saving, onClose, onSubmit }: { entity: AdminUser | null; departments: AdminDepartment[]; saving: boolean; onClose: () => void; onSubmit: (values: Record<string, unknown>) => void }) {
+  return (
+    <div className="modal-backdrop">
+      <form className="modal compact-modal" onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit(Object.fromEntries(new FormData(event.currentTarget).entries()));
+      }}>
+        <div className="modal-header"><h2>{entity ? '编辑用户' : '新增用户'}</h2><button type="button" className="icon-button" onClick={onClose}>x</button></div>
+        <div className="form-grid">
+          <label><span>姓名</span><input name="name" defaultValue={entity?.name ?? ''} /></label>
+          <label><span>角色</span><select name="role" defaultValue={entity?.role ?? 'employee'}><option value="admin">管理员</option><option value="boss">老板</option><option value="employee">员工</option></select></label>
+          <label><span>状态</span><select name="status" defaultValue={entity?.status ?? 'active'}><option value="active">启用</option><option value="disabled">禁用</option></select></label>
+          <label><span>部门</span><select name="department_id" defaultValue={entity?.department_id ?? ''}><option value="">未选择</option>{departments.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+          <label><span>邮箱</span><input name="email" defaultValue={entity?.email ?? ''} /></label>
+          <label><span>手机</span><input name="phone" defaultValue={entity?.phone ?? ''} /></label>
+          <label><span>{entity ? '新密码' : '初始密码'}</span><input name="password" type="password" placeholder={entity ? '留空不修改' : '默认 123456'} /></label>
+        </div>
+        <div className="modal-actions"><button type="button" className="ghost-button" onClick={onClose}>取消</button><button type="submit" className="primary-button" disabled={saving}>{saving ? '保存中...' : '保存'}</button></div>
+      </form>
+    </div>
+  );
+}
+
+function DepartmentAdminModal({ entity, users, saving, onClose, onSubmit }: { entity: AdminDepartment | null; users: AdminUser[]; saving: boolean; onClose: () => void; onSubmit: (values: Record<string, unknown>) => void }) {
+  return (
+    <div className="modal-backdrop">
+      <form className="modal compact-modal" onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit(Object.fromEntries(new FormData(event.currentTarget).entries()));
+      }}>
+        <div className="modal-header"><h2>{entity ? '编辑部门' : '新增部门'}</h2><button type="button" className="icon-button" onClick={onClose}>x</button></div>
+        <div className="form-grid">
+          <label><span>部门名称</span><input name="name" defaultValue={entity?.name ?? ''} /></label>
+          <label><span>负责人</span><select name="manager_user_id" defaultValue={entity?.manager_user_id ?? ''}><option value="">未选择</option>{users.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
+        </div>
+        <div className="modal-actions"><button type="button" className="ghost-button" onClick={onClose}>取消</button><button type="submit" className="primary-button" disabled={saving}>{saving ? '保存中...' : '保存'}</button></div>
+      </form>
+    </div>
   );
 }
