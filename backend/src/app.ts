@@ -44,9 +44,9 @@ app.use(
 app.get('/api/health', async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
-    res.json({ code: 200, data: { status: 'ok', database: 'connected', timestamp: new Date().toISOString() }, message: 'success' });
+    res.json({ code: 200, data: { status: 'ok', database: 'connected', uptime_seconds: Math.round(process.uptime()), timestamp: new Date().toISOString() }, message: 'success' });
   } catch {
-    res.status(503).json({ code: 503, data: { status: 'degraded', database: 'disconnected', timestamp: new Date().toISOString() }, message: 'database unavailable' });
+    res.status(503).json({ code: 503, data: { status: 'degraded', database: 'disconnected', uptime_seconds: Math.round(process.uptime()), timestamp: new Date().toISOString() }, message: 'database unavailable' });
   }
 });
 
