@@ -35,4 +35,18 @@ describe('errorHandler', () => {
     expect(response.status).toHaveBeenCalledWith(400);
     expect(response.json).toHaveBeenCalledWith({ code: 400, data: null, message: '绑定的数据不存在，请检查关联关系' });
   });
+
+  it('uses custom status codes from business errors', () => {
+    const response = {
+      status: vi.fn().mockReturnThis(),
+      json: vi.fn(),
+    };
+    const error = new Error('ID 参数不正确') as Error & { statusCode?: number };
+    error.statusCode = 400;
+
+    errorHandler(error, {} as never, response as never, vi.fn());
+
+    expect(response.status).toHaveBeenCalledWith(400);
+    expect(response.json).toHaveBeenCalledWith({ code: 400, data: null, message: 'ID 参数不正确' });
+  });
 });
