@@ -33,12 +33,12 @@ export const authService = {
     });
 
     if (!user) {
-      throw new Error('用户不存在');
+      throw new Error('用户名或密码错误');
     }
 
     const validPassword = await bcrypt.compare(password, user.password_hash);
     if (!validPassword) {
-      throw new Error('密码错误');
+      throw new Error('用户名或密码错误');
     }
 
     return {
