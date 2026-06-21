@@ -62,6 +62,13 @@ model Device {
   owner        User?       @relation("DeviceOwner", fields: [owner_user_id], references: [id])
   current_user User?       @relation("DeviceCurrentUser", fields: [current_user_id], references: [id])
   phone_numbers PhoneNumber[]
+
+  @@index([deleted_at])
+  @@index([department_id])
+  @@index([owner_user_id])
+  @@index([current_user_id])
+  @@index([status])
+  @@index([risk_level])
 }
 
 model PhoneNumber {
@@ -84,6 +91,12 @@ model PhoneNumber {
   device   Device @relation(fields: [device_id], references: [id])
   owner    User?  @relation("PhoneOwner", fields: [owner_user_id], references: [id])
   internet_accounts InternetAccount[]
+
+  @@index([deleted_at])
+  @@index([device_id])
+  @@index([owner_user_id])
+  @@index([status])
+  @@index([risk_level])
 }
 
 model InternetAccount {
@@ -114,6 +127,14 @@ model InternetAccount {
   department   Department? @relation(fields: [department_id], references: [id])
   owner        User?       @relation("AccountOwner", fields: [owner_user_id], references: [id])
   current_user User?       @relation("AccountCurrentUser", fields: [current_user_id], references: [id])
+
+  @@index([deleted_at])
+  @@index([phone_number_id])
+  @@index([department_id])
+  @@index([owner_user_id])
+  @@index([current_user_id])
+  @@index([status])
+  @@index([risk_level])
 }
 
 model OperationLog {
@@ -130,4 +151,7 @@ model OperationLog {
   created_at  DateTime @default(now())
 
   operator User? @relation(fields: [operator_id], references: [id])
+
+  @@index([operator_id])
+  @@index([created_at])
 }
