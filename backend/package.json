@@ -8,6 +8,7 @@
     "start": "node dist/index.js",
     "test": "vitest run",
     "db:generate": "prisma generate",
+    "db:validate": "node scripts/prisma-validate.cjs",
     "db:migrate": "prisma migrate dev",
     "db:seed": "tsx prisma/seed.ts",
     "postinstall": "prisma generate"
