@@ -79,6 +79,17 @@ function StatusBadge({ value, tone = 'neutral' }: { value: string; tone?: string
   return <span className={`badge ${tone}`}>{value}</span>;
 }
 
+function useDebouncedValue<T>(value: T, delayMs: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedValue(value), delayMs);
+    return () => window.clearTimeout(timer);
+  }, [delayMs, value]);
+
+  return debouncedValue;
+}
+
 export function AssetWorkspace({ user, onLogout }: Props) {
   const [section, setSection] = useState<Section>('assets');
   const [view, setView] = useState<ViewType>('devices');
@@ -103,12 +114,13 @@ export function AssetWorkspace({ user, onLogout }: Props) {
   const canWrite = user.roles.includes('admin');
   const title = useMemo(() => tabs.find((tab) => tab.id === view)?.label ?? '', [view]);
   const pageCount = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [pageSize, total]);
+  const debouncedSearch = useDebouncedValue(search, 300);
 
   const loadAssets = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const [listResponse, statsResponse, metaResponse] = await Promise.all([api.list(view, { search, status: statusFilter, riskLevel: riskFilter, page, pageSize }), api.stats(), api.meta()]);
+      const [listResponse, statsResponse, metaResponse] = await Promise.all([api.list(view, { search: debouncedSearch, status: statusFilter, riskLevel: riskFilter, page, pageSize }), api.stats(), api.meta()]);
       setItems(listResponse.data);
       setTotal(listResponse.pagination.total);
       setStats(statsResponse.data);
@@ -122,7 +134,7 @@ export function AssetWorkspace({ user, onLogout }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [page, pageSize, riskFilter, search, statusFilter, view]);
+  }, [debouncedSearch, page, pageSize, riskFilter, statusFilter, view]);
 
   const loadSecondary = useCallback(async () => {
     if (section === 'logs') {
