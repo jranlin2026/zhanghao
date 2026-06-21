@@ -68,7 +68,7 @@ model PhoneNumber {
   id             Int      @id @default(autoincrement())
   device_id      Int
   slot_type      String
-  phone_number   String
+  phone_number   String   @unique
   carrier        String
   is_primary     Boolean  @default(false)
   monthly_fee    Decimal? @db.Decimal(10, 2)

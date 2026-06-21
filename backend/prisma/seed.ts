@@ -79,7 +79,7 @@ async function main() {
   });
 
   const phone = await prisma.phoneNumber.upsert({
-    where: { id: 1 },
+    where: { phone_number: '13912345678' },
     update: {},
     create: {
       device_id: device.id,
