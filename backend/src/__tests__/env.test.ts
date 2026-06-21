@@ -9,6 +9,7 @@ describe('runtime env validation', () => {
         JWT_SECRET: 'default-jwt-secret-change-in-production',
         PORT: 3001,
         FRONTEND_URL: 'https://asset.example.com',
+        DEV_DEMO_MODE: false,
         isDev: false,
       }),
     ).toThrow('JWT_SECRET must be changed in production');
@@ -21,6 +22,7 @@ describe('runtime env validation', () => {
         JWT_SECRET: 'local-secret',
         PORT: Number.NaN,
         FRONTEND_URL: 'http://localhost:5173',
+        DEV_DEMO_MODE: false,
         isDev: true,
       }),
     ).toThrow('PORT must be a valid port number');
@@ -33,6 +35,7 @@ describe('runtime env validation', () => {
         JWT_SECRET: 'short',
         PORT: 3001,
         FRONTEND_URL: 'https://asset.example.com',
+        DEV_DEMO_MODE: false,
         isDev: false,
       }),
     ).toThrow('JWT_SECRET must be at least 32 characters in production');

@@ -1,7 +1,9 @@
 import { prisma } from '../config/db';
+import { env } from '../config/env';
 import { AuthUser, canReadAll, canReadEntity, requireWritable } from './access';
 import { toAuditJson } from './audit';
 import { createAssetCode } from './code';
+import { demoStore } from './demoStore';
 import { maskLoginAccount, maskPhoneNumber, normalizeDecimal } from './format';
 import { getAccountRiskLevel, getDeviceRiskLevel, getPhoneRiskLevel } from './risk';
 import { validateAccountPayload, validateDevicePayload, validatePhonePayload } from './validation';
@@ -173,7 +175,7 @@ async function refreshPhoneRisk(phoneId: number) {
   }
 }
 
-export const assetsService = {
+const prismaAssetsService = {
   async meta(user: Express.Request['user']) {
     const [departments, users, devices, phones] = await Promise.all([
       prisma.department.findMany({ orderBy: { id: 'asc' } }),
@@ -538,3 +540,5 @@ export const assetsService = {
     return paginate(riskRows, query);
   },
 };
+
+export const assetsService = env.DEV_DEMO_MODE ? demoStore : prismaAssetsService;

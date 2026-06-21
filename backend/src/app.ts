@@ -42,6 +42,11 @@ app.use(
 );
 
 app.get('/api/health', async (_req, res) => {
+  if (env.DEV_DEMO_MODE) {
+    res.json({ code: 200, data: { status: 'ok', database: 'demo-memory', uptime_seconds: Math.round(process.uptime()), timestamp: new Date().toISOString() }, message: 'success' });
+    return;
+  }
+
   try {
     await prisma.$queryRaw`SELECT 1`;
     res.json({ code: 200, data: { status: 'ok', database: 'connected', uptime_seconds: Math.round(process.uptime()), timestamp: new Date().toISOString() }, message: 'success' });

@@ -1,7 +1,9 @@
 import bcrypt from 'bcryptjs';
 import { prisma } from '../config/db';
+import { env } from '../config/env';
 import { canWrite, requireWritable } from './access';
 import { validateDepartmentPayload, validateUserPayload } from './adminValidation';
+import { demoStore } from './demoStore';
 
 type RequestUser = Express.Request['user'];
 
@@ -48,7 +50,7 @@ async function writeLog(user: RequestUser, action: string, targetType: string, t
   });
 }
 
-export const adminService = {
+const prismaAdminService = {
   async listUsers(user: RequestUser) {
     if (!canWrite(toAccessUser(user))) {
       return [];
@@ -143,3 +145,5 @@ export const adminService = {
     return result;
   },
 };
+
+export const adminService = env.DEV_DEMO_MODE ? demoStore : prismaAdminService;

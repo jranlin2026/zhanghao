@@ -8,6 +8,7 @@ export type RuntimeEnv = {
   JWT_SECRET: string;
   PORT: number;
   FRONTEND_URL: string;
+  DEV_DEMO_MODE: boolean;
   isDev: boolean;
 };
 
@@ -32,5 +33,6 @@ export const env = validateRuntimeEnv({
   JWT_SECRET: process.env.JWT_SECRET || 'default-jwt-secret-change-in-production',
   PORT: Number.parseInt(process.env.PORT || '3001', 10),
   FRONTEND_URL: process.env.FRONTEND_URL || 'http://localhost:5173',
+  DEV_DEMO_MODE: process.env.DEV_DEMO_MODE === 'true',
   isDev: process.env.NODE_ENV !== 'production',
 });

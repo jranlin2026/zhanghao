@@ -1,6 +1,8 @@
 import bcrypt from 'bcryptjs';
+import { env } from '../config/env';
 import { prisma } from '../config/db';
 import { signToken } from '../config/jwt';
+import { demoStore } from './demoStore';
 
 function toPublicUser(user: {
   id: number;
@@ -33,6 +35,8 @@ function authError(message: string): Error & { statusCode?: number } {
 
 export const authService = {
   async login(name: string, password: string) {
+    if (env.DEV_DEMO_MODE) return demoStore.login(name, password);
+
     const user = await prisma.user.findFirst({
       where: { name, status: 'active' },
       include: { department: true },
@@ -54,6 +58,8 @@ export const authService = {
   },
 
   async getProfile(userId: number) {
+    if (env.DEV_DEMO_MODE) return demoStore.getProfile(userId);
+
     const user = await prisma.user.findFirst({
       where: { id: userId, status: 'active' },
       include: { department: true },
