@@ -179,7 +179,7 @@ export const assetsService = {
       prisma.department.findMany({ orderBy: { id: 'asc' } }),
       prisma.user.findMany({ where: { status: 'active' }, orderBy: { id: 'asc' } }),
       prisma.device.findMany({ where: { deleted_at: null }, orderBy: { id: 'asc' } }),
-      prisma.phoneNumber.findMany({ where: { deleted_at: null }, include: { device: true }, orderBy: { id: 'asc' } }),
+      prisma.phoneNumber.findMany({ where: { deleted_at: null, device: { deleted_at: null } }, include: { device: true }, orderBy: { id: 'asc' } }),
     ]);
     const accessUser = userAccess(user);
     return {
