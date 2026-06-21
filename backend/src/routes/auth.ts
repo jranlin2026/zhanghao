@@ -25,7 +25,7 @@ router.post('/login', loginLimiter, asyncHandler(async (req: Request, res: Respo
     return res.json({ code: 200, data: result, message: '登录成功' });
   } catch (err) {
     const message = err instanceof Error ? err.message : '登录失败';
-    const statusCode = message === '用户名或密码错误' ? 401 : 500;
+    const statusCode = Number((err as { statusCode?: number }).statusCode) || 500;
     return res.status(statusCode).json({ code: statusCode, data: null, message });
   }
 }));
@@ -40,7 +40,8 @@ router.get('/profile', authMiddleware, asyncHandler(async (req: Request, res: Re
     return res.json({ code: 200, data: user, message: 'success' });
   } catch (err) {
     const message = err instanceof Error ? err.message : '获取用户信息失败';
-    return res.status(500).json({ code: 500, data: null, message });
+    const statusCode = Number((err as { statusCode?: number }).statusCode) || 500;
+    return res.status(statusCode).json({ code: statusCode, data: null, message });
   }
 }));
 

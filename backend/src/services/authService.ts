@@ -25,6 +25,12 @@ function toPublicUser(user: {
   };
 }
 
+function authError(message: string): Error & { statusCode?: number } {
+  const error = new Error(message) as Error & { statusCode?: number };
+  error.statusCode = 401;
+  return error;
+}
+
 export const authService = {
   async login(name: string, password: string) {
     const user = await prisma.user.findFirst({
@@ -33,12 +39,12 @@ export const authService = {
     });
 
     if (!user) {
-      throw new Error('用户名或密码错误');
+      throw authError('用户名或密码错误');
     }
 
     const validPassword = await bcrypt.compare(password, user.password_hash);
     if (!validPassword) {
-      throw new Error('用户名或密码错误');
+      throw authError('用户名或密码错误');
     }
 
     return {
@@ -54,7 +60,7 @@ export const authService = {
     });
 
     if (!user) {
-      throw new Error('用户不存在');
+      throw authError('用户不存在');
     }
 
     return toPublicUser(user);
