@@ -122,6 +122,14 @@ export type ListResponse<T> = {
   pagination: { page: number; pageSize: number; total: number };
 };
 
+export type ListFilters = {
+  search: string;
+  status: string;
+  riskLevel: string;
+  page: number;
+  pageSize: number;
+};
+
 export type ApiResponse<T> = {
   code: number;
   data: T;

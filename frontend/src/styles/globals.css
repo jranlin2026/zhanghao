@@ -284,11 +284,37 @@ tbody tr:hover {
   height: 42px;
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
+  gap: 12px;
   padding: 0 16px;
   color: #6b7280;
   font-size: 13px;
   border-top: 1px solid #eef0f3;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pagination-controls select {
+  width: 96px;
+  min-height: 30px;
+}
+
+.pagination-controls button {
+  height: 30px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: #fff;
+  color: #374151;
+  padding: 0 10px;
+}
+
+.pagination-controls button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .badge {

@@ -3,6 +3,7 @@ import type {
   AssetMeta,
   Device,
   InternetAccount,
+  ListFilters,
   ListResponse,
   OperationLog,
   PhoneNumber,
@@ -61,11 +62,13 @@ export const api = {
     return request<ApiResponse<Stats>>('/assets/stats');
   },
 
-  list(view: ViewType, filters: { search: string; status: string; riskLevel: string }) {
+  list(view: ViewType, filters: ListFilters) {
     const params = new URLSearchParams();
     if (filters.search) params.set('search', filters.search);
     if (filters.status) params.set('status', filters.status);
     if (filters.riskLevel) params.set('riskLevel', filters.riskLevel);
+    params.set('page', String(filters.page));
+    params.set('pageSize', String(filters.pageSize));
     const query = params.toString() ? `?${params.toString()}` : '';
     return request<ListResponse<Device | PhoneNumber | InternetAccount>>(`${pathForView(view)}${query}`);
   },

@@ -34,6 +34,8 @@ const navItems: Array<{ id: Section; label: string }> = [
   { id: 'settings', label: '系统设置' },
 ];
 
+const pageSizeOptions = [10, 20, 50];
+
 const fieldLabels: Record<string, string> = {
   id: 'ID',
   device_code: '设备编号',
@@ -83,6 +85,8 @@ export function AssetWorkspace({ user, onLogout }: Props) {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [riskFilter, setRiskFilter] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [items, setItems] = useState<AssetEntity[]>([]);
   const [total, setTotal] = useState(0);
   const [logs, setLogs] = useState<OperationLog[]>([]);
@@ -96,12 +100,13 @@ export function AssetWorkspace({ user, onLogout }: Props) {
 
   const canWrite = user.roles.includes('admin');
   const title = useMemo(() => tabs.find((tab) => tab.id === view)?.label ?? '', [view]);
+  const pageCount = useMemo(() => Math.max(1, Math.ceil(total / pageSize)), [pageSize, total]);
 
   const loadAssets = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const [listResponse, statsResponse, metaResponse] = await Promise.all([api.list(view, { search, status: statusFilter, riskLevel: riskFilter }), api.stats(), api.meta()]);
+      const [listResponse, statsResponse, metaResponse] = await Promise.all([api.list(view, { search, status: statusFilter, riskLevel: riskFilter, page, pageSize }), api.stats(), api.meta()]);
       setItems(listResponse.data);
       setTotal(listResponse.pagination.total);
       setStats(statsResponse.data);
@@ -115,7 +120,7 @@ export function AssetWorkspace({ user, onLogout }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [riskFilter, search, statusFilter, view]);
+  }, [page, pageSize, riskFilter, search, statusFilter, view]);
 
   const loadSecondary = useCallback(async () => {
     if (section === 'logs') {
@@ -139,6 +144,17 @@ export function AssetWorkspace({ user, onLogout }: Props) {
       void loadSecondary().catch((err) => setError(err instanceof Error ? err.message : '加载失败'));
     }
   }, [loadAssets, loadSecondary, section]);
+
+  useEffect(() => {
+    setPage(1);
+    setSelected(null);
+  }, [riskFilter, search, statusFilter, view]);
+
+  useEffect(() => {
+    if (page > pageCount) {
+      setPage(pageCount);
+    }
+  }, [page, pageCount]);
 
   async function submitModal(values: Record<string, unknown>) {
     if (modalEntity === undefined) return;
@@ -234,7 +250,24 @@ export function AssetWorkspace({ user, onLogout }: Props) {
             <section className="table-wrap">
               <h1>{title}</h1>
               {loading ? <div className="empty">加载中...</div> : <AssetTable view={view} items={items} selected={selected} onSelect={setSelected} />}
-              <div className="table-footer">共 {total} 条</div>
+              <div className="table-footer">
+                <span>共 {total} 条，第 {page} / {pageCount} 页</span>
+                <div className="pagination-controls">
+                  <select
+                    value={pageSize}
+                    onChange={(event) => {
+                      setPageSize(Number(event.target.value));
+                      setPage(1);
+                    }}
+                  >
+                    {pageSizeOptions.map((size) => (
+                      <option key={size} value={size}>{size} 条/页</option>
+                    ))}
+                  </select>
+                  <button disabled={page <= 1 || loading} onClick={() => setPage((current) => Math.max(1, current - 1))}>上一页</button>
+                  <button disabled={page >= pageCount || loading} onClick={() => setPage((current) => Math.min(pageCount, current + 1))}>下一页</button>
+                </div>
+              </div>
             </section>
           </>
         )}
