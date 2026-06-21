@@ -1,5 +1,5 @@
 import { prisma } from '../config/db';
-import { AuthUser, canReadEntity, requireWritable } from './access';
+import { AuthUser, canReadAll, canReadEntity, requireWritable } from './access';
 import { maskLoginAccount, maskPhoneNumber, normalizeDecimal } from './format';
 import { getAccountRiskLevel, getDeviceRiskLevel, getPhoneRiskLevel } from './risk';
 import { validateAccountPayload, validateDevicePayload, validatePhonePayload } from './validation';
@@ -437,7 +437,12 @@ export const assetsService = {
   },
 
   async logs(user: Express.Request['user'], query: Query) {
-    const rows = await prisma.operationLog.findMany({ include: { operator: true }, orderBy: { created_at: 'desc' } });
+    const accessUser = userAccess(user);
+    const rows = await prisma.operationLog.findMany({
+      where: canReadAll(accessUser) ? undefined : { operator_id: user?.id ?? -1 },
+      include: { operator: true },
+      orderBy: { created_at: 'desc' },
+    });
     return paginate(
       rows.map((log) => ({
         ...log,
