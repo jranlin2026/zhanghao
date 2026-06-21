@@ -97,7 +97,7 @@ function renderField(field: Field, entity: AssetEntity | null) {
   if (field.type === 'textarea') {
     return <textarea name={field.key} defaultValue={defaultValue} rows={3} />;
   }
-  return <input name={field.key} type={field.type ?? 'text'} defaultValue={defaultValue} />;
+  return <input name={field.key} type={field.type ?? 'text'} min={field.type === 'number' ? 0 : undefined} step={field.type === 'number' ? '0.01' : undefined} defaultValue={defaultValue} />;
 }
 
 export function AssetModal({ view, entity, meta, onClose, onSubmit }: Props) {
