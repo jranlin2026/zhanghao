@@ -34,6 +34,37 @@ const navItems: Array<{ id: Section; label: string }> = [
   { id: 'settings', label: '系统设置' },
 ];
 
+const fieldLabels: Record<string, string> = {
+  id: 'ID',
+  device_code: '设备编号',
+  device_name: '设备名称',
+  brand_model: '品牌型号',
+  imei: 'IMEI',
+  sim_type: 'SIM 类型',
+  owner_subject: '所属主体',
+  department_id: '部门 ID',
+  department_name: '所属部门',
+  owner_user_id: '负责人 ID',
+  owner_name: '负责人',
+  current_user_id: '当前使用人 ID',
+  current_user_name: '当前使用人',
+  status: '状态',
+  risk_level: '风险等级',
+  remark: '备注',
+  device_id: '设备 ID',
+  slot_type: '卡槽',
+  phone_number_masked: '手机号',
+  carrier: '运营商',
+  monthly_fee: '月费',
+  account_code: '账号编号',
+  platform: '平台',
+  account_name: '账号名称',
+  login_account_masked: '登录账号',
+  bind_phone_masked: '绑定手机号',
+  bind_email: '绑定邮箱',
+  permission_status: '权限状态',
+};
+
 function riskLabel(level: string) {
   return level === 'high' ? '高风险' : level === 'medium' ? '中风险' : level === 'low' ? '低风险' : '无风险';
 }
@@ -277,7 +308,7 @@ function DetailPanel({ entity, view, canWrite, onEdit, onDelete }: { entity: Ass
       </div>
       <div className="detail-title">{title}</div>
       <div className="detail-list">
-        {rows.map(([key, value]) => <div key={key}><span>{key}</span><strong>{String(value ?? '-')}</strong></div>)}
+        {rows.map(([key, value]) => <div key={key}><span>{fieldLabels[key] ?? key}</span><strong>{String(value ?? '-')}</strong></div>)}
       </div>
       {canWrite && <button className="danger-button" onClick={onDelete}>注销资产</button>}
     </div>
