@@ -48,8 +48,8 @@ export const authService = {
   },
 
   async getProfile(userId: number) {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    const user = await prisma.user.findFirst({
+      where: { id: userId, status: 'active' },
       include: { department: true },
     });
 
