@@ -370,6 +370,7 @@ function LogPanel({ logs, total }: { logs: OperationLog[]; total: number }) {
           </tr>
         ))}</tbody>
       </table>
+      {logs.length === 0 && <div className="empty">暂无操作日志</div>}
       {selectedLog && (
         <div className="log-detail">
           <div>
@@ -397,6 +398,7 @@ function RiskPanel({ risks, total }: { risks: RiskItem[]; total: number }) {
           <tr key={risk.id}><td><StatusBadge value={riskLabel(risk.risk_level)} tone={risk.risk_level} /></td><td>{risk.risk_title}</td><td>{risk.entity_name}</td><td>{risk.risk_reason}</td><td>{risk.suggestion}</td><td>{formatDate(risk.detected_at)}</td></tr>
         ))}</tbody>
       </table>
+      {risks.length === 0 && <div className="empty">暂无风险提醒</div>}
       <div className="table-footer">共 {total} 条</div>
     </section>
   );
