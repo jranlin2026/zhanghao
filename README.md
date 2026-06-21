@@ -41,6 +41,8 @@ npm run dev
 docker compose up --build
 ```
 
+生产启动前可通过环境变量覆盖默认值，例如 `POSTGRES_PASSWORD`、`JWT_SECRET`、`FRONTEND_URL`。
+
 服务：
 
 - 前端：http://localhost
