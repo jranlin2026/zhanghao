@@ -61,8 +61,12 @@ export const api = {
     return request<ApiResponse<Stats>>('/assets/stats');
   },
 
-  list(view: ViewType, search: string) {
-    const query = search ? `?search=${encodeURIComponent(search)}` : '';
+  list(view: ViewType, filters: { search: string; status: string; riskLevel: string }) {
+    const params = new URLSearchParams();
+    if (filters.search) params.set('search', filters.search);
+    if (filters.status) params.set('status', filters.status);
+    if (filters.riskLevel) params.set('riskLevel', filters.riskLevel);
+    const query = params.toString() ? `?${params.toString()}` : '';
     return request<ListResponse<Device | PhoneNumber | InternetAccount>>(`${pathForView(view)}${query}`);
   },
 

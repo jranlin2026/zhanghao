@@ -50,6 +50,8 @@ export function AssetWorkspace({ user, onLogout }: Props) {
   const [section, setSection] = useState<Section>('assets');
   const [view, setView] = useState<ViewType>('devices');
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [riskFilter, setRiskFilter] = useState('');
   const [items, setItems] = useState<AssetEntity[]>([]);
   const [logs, setLogs] = useState<OperationLog[]>([]);
   const [risks, setRisks] = useState<RiskItem[]>([]);
@@ -67,7 +69,7 @@ export function AssetWorkspace({ user, onLogout }: Props) {
     setLoading(true);
     setError('');
     try {
-      const [listResponse, statsResponse, metaResponse] = await Promise.all([api.list(view, search), api.stats(), api.meta()]);
+      const [listResponse, statsResponse, metaResponse] = await Promise.all([api.list(view, { search, status: statusFilter, riskLevel: riskFilter }), api.stats(), api.meta()]);
       setItems(listResponse.data);
       setStats(statsResponse.data);
       setMeta(metaResponse.data);
@@ -80,7 +82,7 @@ export function AssetWorkspace({ user, onLogout }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [search, view]);
+  }, [riskFilter, search, statusFilter, view]);
 
   const loadSecondary = useCallback(async () => {
     if (section === 'logs') {
@@ -163,6 +165,19 @@ export function AssetWorkspace({ user, onLogout }: Props) {
           <>
             <section className="content-toolbar">
               <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="搜索设备名称、IMEI、手机号、账号名称..." />
+              <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value)}>
+                <option value="">全部状态</option>
+                <option value="使用中">使用中</option>
+                <option value="闲置">闲置</option>
+                <option value="异常">异常</option>
+              </select>
+              <select value={riskFilter} onChange={(event) => setRiskFilter(event.target.value)}>
+                <option value="">全部风险</option>
+                <option value="high">高风险</option>
+                <option value="medium">中风险</option>
+                <option value="low">低风险</option>
+                <option value="none">无风险</option>
+              </select>
               {canWrite && <button className="primary-button" onClick={() => setModalEntity(null)}>新增</button>}
             </section>
 

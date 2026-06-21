@@ -17,6 +17,12 @@ function containsKeyword(values: Array<unknown>, search: string): boolean {
   return haystack.includes(search.toLowerCase());
 }
 
+function matchesFilters(item: { status?: string; risk_level?: string }, query: Query): boolean {
+  const status = typeof query.status === 'string' ? query.status : '';
+  const riskLevel = typeof query.riskLevel === 'string' ? query.riskLevel : '';
+  return (!status || item.status === status) && (!riskLevel || item.risk_level === riskLevel);
+}
+
 function paginate<T>(items: T[], query: Query) {
   const { page, pageSize } = pageParams(query);
   const start = (page - 1) * pageSize;
@@ -181,6 +187,7 @@ export const assetsService = {
     const search = typeof query.search === 'string' ? query.search.trim() : '';
     const filtered = rows
       .filter((device) => canReadEntity(userAccess(user), deviceAccessShape(device)))
+      .filter((device) => matchesFilters(device, query))
       .filter((device) => !search || containsKeyword([device.device_code, device.device_name, device.brand_model, device.imei], search));
     return paginate(filtered.map(serializeDevice), query);
   },
@@ -253,6 +260,7 @@ export const assetsService = {
     const search = typeof query.search === 'string' ? query.search.trim() : '';
     const filtered = rows
       .filter((phone) => canReadEntity(userAccess(user), phoneAccessShape(phone)))
+      .filter((phone) => matchesFilters(phone, query))
       .filter((phone) => !search || containsKeyword([phone.phone_number, phone.carrier, phone.device.device_name], search));
     return paginate(filtered.map(serializePhone), query);
   },
@@ -323,6 +331,7 @@ export const assetsService = {
     const search = typeof query.search === 'string' ? query.search.trim() : '';
     const filtered = rows
       .filter((account) => canReadEntity(userAccess(user), accountAccessShape(account)))
+      .filter((account) => matchesFilters(account, query))
       .filter((account) => !search || containsKeyword([account.account_code, account.account_name, account.platform, account.login_account], search));
     return paginate(filtered.map(serializeAccount), query);
   },

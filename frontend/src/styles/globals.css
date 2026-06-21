@@ -161,7 +161,7 @@ textarea {
 
 .content-toolbar {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: 1fr 132px 132px auto;
   gap: 12px;
   padding: 18px 24px 10px;
 }
