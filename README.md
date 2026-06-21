@@ -36,6 +36,7 @@ npm run dev
 ## Docker 部署
 
 需要服务器已安装 Docker 和 Docker Compose。
+上线前可参考 [上线检查清单](docs/launch-checklist.md)。
 
 ```bash
 docker compose up --build
