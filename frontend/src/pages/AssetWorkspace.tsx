@@ -107,20 +107,30 @@ export function AssetWorkspace({ user, onLogout }: Props) {
 
   async function submitModal(values: Record<string, unknown>) {
     if (modalEntity === undefined) return;
-    if (modalEntity) {
-      await api.update(view, modalEntity.id, values);
-    } else {
-      await api.create(view, values);
+    setError('');
+    const cleanedValues = Object.fromEntries(Object.entries(values).map(([key, value]) => [key, value === '' ? undefined : value]));
+    try {
+      if (modalEntity) {
+        await api.update(view, modalEntity.id, cleanedValues);
+      } else {
+        await api.create(view, cleanedValues);
+      }
+      setModalEntity(undefined);
+      await loadAssets();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '保存失败');
     }
-    setModalEntity(undefined);
-    await loadAssets();
   }
 
   async function removeSelected() {
     if (!selected || !window.confirm('确认注销当前资产？')) return;
-    await api.remove(view, selected.id);
-    setSelected(null);
-    await loadAssets();
+    try {
+      await api.remove(view, selected.id);
+      setSelected(null);
+      await loadAssets();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '注销失败');
+    }
   }
 
   return (

@@ -1,0 +1,20 @@
+import { describe, expect, it } from 'vitest';
+import { validateAccountPayload, validateDevicePayload, validatePhonePayload } from '../services/validation';
+
+describe('asset payload validation', () => {
+  it('rejects missing device core fields', () => {
+    expect(() => validateDevicePayload({ device_name: '', brand_model: 'iPhone', imei: '123' })).toThrow('设备名称不能为空');
+    expect(() => validateDevicePayload({ device_name: '工作机', brand_model: '', imei: '123' })).toThrow('品牌型号不能为空');
+    expect(() => validateDevicePayload({ device_name: '工作机', brand_model: 'iPhone', imei: '' })).toThrow('IMEI 不能为空');
+  });
+
+  it('rejects missing phone core fields', () => {
+    expect(() => validatePhonePayload({ device_id: '', phone_number: '13912345678', carrier: '中国移动' })).toThrow('所属设备不能为空');
+    expect(() => validatePhonePayload({ device_id: 1, phone_number: '', carrier: '中国移动' })).toThrow('手机号不能为空');
+  });
+
+  it('rejects missing account core fields', () => {
+    expect(() => validateAccountPayload({ phone_number_id: 1, platform: '', account_name: '服务号', login_account: 'svc' })).toThrow('平台不能为空');
+    expect(() => validateAccountPayload({ phone_number_id: 1, platform: '微信', account_name: '', login_account: 'svc' })).toThrow('账号名称不能为空');
+  });
+});

@@ -2,6 +2,7 @@ import { prisma } from '../config/db';
 import { AuthUser, canReadEntity, requireWritable } from './access';
 import { maskLoginAccount, maskPhoneNumber, normalizeDecimal } from './format';
 import { getAccountRiskLevel, getDeviceRiskLevel, getPhoneRiskLevel } from './risk';
+import { validateAccountPayload, validateDevicePayload, validatePhonePayload } from './validation';
 
 type Query = Record<string, unknown>;
 
@@ -192,6 +193,7 @@ export const assetsService = {
 
   async createDevice(user: Express.Request['user'], data: any) {
     requireWritable(userAccess(user));
+    validateDevicePayload(data);
     const created = await prisma.device.create({
       data: {
         device_code: `DEV-${Date.now()}`,
@@ -216,6 +218,7 @@ export const assetsService = {
 
   async updateDevice(user: Express.Request['user'], id: number, data: any) {
     requireWritable(userAccess(user));
+    validateDevicePayload(data);
     const updated = await prisma.device.update({
       where: { id },
       data: {
@@ -262,6 +265,7 @@ export const assetsService = {
 
   async createPhone(user: Express.Request['user'], data: any) {
     requireWritable(userAccess(user));
+    validatePhonePayload(data);
     const created = await prisma.phoneNumber.create({
       data: {
         device_id: Number(data.device_id),
@@ -285,6 +289,7 @@ export const assetsService = {
 
   async updatePhone(user: Express.Request['user'], id: number, data: any) {
     requireWritable(userAccess(user));
+    validatePhonePayload(data);
     const updated = await prisma.phoneNumber.update({
       where: { id },
       data: {
@@ -330,6 +335,7 @@ export const assetsService = {
 
   async createAccount(user: Express.Request['user'], data: any) {
     requireWritable(userAccess(user));
+    validateAccountPayload(data);
     const created = await prisma.internetAccount.create({
       data: {
         phone_number_id: Number(data.phone_number_id),
@@ -360,6 +366,7 @@ export const assetsService = {
 
   async updateAccount(user: Express.Request['user'], id: number, data: any) {
     requireWritable(userAccess(user));
+    validateAccountPayload(data);
     const updated = await prisma.internetAccount.update({
       where: { id },
       data: {
