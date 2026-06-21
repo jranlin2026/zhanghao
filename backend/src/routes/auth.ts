@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import { Router } from 'express';
+import { authMiddleware } from '../middleware/auth';
 import { authService } from '../services/authService';
 import { asyncHandler } from './asyncHandler';
 
@@ -22,7 +23,7 @@ router.post('/login', asyncHandler(async (req: Request, res: Response) => {
   }
 }));
 
-router.get('/profile', asyncHandler(async (req: Request, res: Response) => {
+router.get('/profile', authMiddleware, asyncHandler(async (req: Request, res: Response) => {
   try {
     if (!req.user?.id) {
       return res.status(401).json({ code: 401, data: null, message: '未登录' });
