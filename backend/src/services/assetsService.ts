@@ -271,13 +271,19 @@ export const assetsService = {
 
   async deleteDevice(user: Express.Request['user'], id: number) {
     requireWritable(userAccess(user));
-    const deleted = await prisma.device.update({ where: { id }, data: { status: '已注销', deleted_at: new Date() } });
+    const deletedAt = new Date();
+    await prisma.internetAccount.updateMany({
+      where: { phone_number: { device_id: id } },
+      data: { status: '已注销', deleted_at: deletedAt },
+    });
+    await prisma.phoneNumber.updateMany({ where: { device_id: id }, data: { status: '已注销', deleted_at: deletedAt } });
+    const deleted = await prisma.device.update({ where: { id }, data: { status: '已注销', deleted_at: deletedAt } });
     await writeLog(user, 'delete', 'device', id, deleted);
     return deleted;
   },
 
   async listPhones(user: Express.Request['user'], query: Query) {
-    const rows = await prisma.phoneNumber.findMany({ where: { deleted_at: null }, include: phoneInclude(), orderBy: { updated_at: 'desc' } });
+    const rows = await prisma.phoneNumber.findMany({ where: { deleted_at: null, device: { deleted_at: null } }, include: phoneInclude(), orderBy: { updated_at: 'desc' } });
     const search = typeof query.search === 'string' ? query.search.trim() : '';
     const filtered = rows
       .filter((phone) => canReadEntity(userAccess(user), phoneAccessShape(phone)))
@@ -344,14 +350,20 @@ export const assetsService = {
 
   async deletePhone(user: Express.Request['user'], id: number) {
     requireWritable(userAccess(user));
-    const deleted = await prisma.phoneNumber.update({ where: { id }, data: { status: '已注销', deleted_at: new Date() } });
+    const deletedAt = new Date();
+    await prisma.internetAccount.updateMany({ where: { phone_number_id: id }, data: { status: '已注销', deleted_at: deletedAt } });
+    const deleted = await prisma.phoneNumber.update({ where: { id }, data: { status: '已注销', deleted_at: deletedAt } });
     await refreshDeviceRisk(deleted.device_id);
     await writeLog(user, 'delete', 'phone_number', id, deleted);
     return deleted;
   },
 
   async listAccounts(user: Express.Request['user'], query: Query) {
-    const rows = await prisma.internetAccount.findMany({ where: { deleted_at: null }, include: accountInclude(), orderBy: { updated_at: 'desc' } });
+    const rows = await prisma.internetAccount.findMany({
+      where: { deleted_at: null, phone_number: { deleted_at: null, device: { deleted_at: null } } },
+      include: accountInclude(),
+      orderBy: { updated_at: 'desc' },
+    });
     const search = typeof query.search === 'string' ? query.search.trim() : '';
     const filtered = rows
       .filter((account) => canReadEntity(userAccess(user), accountAccessShape(account)))
