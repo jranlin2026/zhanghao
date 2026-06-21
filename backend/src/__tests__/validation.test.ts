@@ -8,6 +8,10 @@ describe('asset payload validation', () => {
     expect(() => validateDevicePayload({ device_name: '工作机', brand_model: 'iPhone', imei: '' })).toThrow('IMEI 不能为空');
   });
 
+  it('rejects invalid imei values', () => {
+    expect(() => validateDevicePayload({ device_name: '工作机', brand_model: 'iPhone', imei: 'abc' })).toThrow('IMEI 格式不正确');
+  });
+
   it('rejects missing phone core fields', () => {
     expect(() => validatePhonePayload({ device_id: '', phone_number: '13912345678', carrier: '中国移动' })).toThrow('所属设备不能为空');
     expect(() => validatePhonePayload({ device_id: 1, phone_number: '', carrier: '中国移动' })).toThrow('手机号不能为空');

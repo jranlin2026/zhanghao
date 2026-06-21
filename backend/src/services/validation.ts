@@ -47,10 +47,23 @@ function validatePhoneNumberFormat(payload: Payload): void {
   }
 }
 
+function validateImeiFormat(payload: Payload): void {
+  if (!('imei' in payload) || isBlank(payload.imei)) {
+    return;
+  }
+
+  if (!/^\d{15}$/.test(String(payload.imei))) {
+    const error = new Error('IMEI 格式不正确') as Error & { statusCode?: number };
+    error.statusCode = 400;
+    throw error;
+  }
+}
+
 export function validateDevicePayload(payload: Payload, options: ValidationOptions = {}): void {
   requireField(payload, 'device_name', '设备名称');
   requireField(payload, 'brand_model', '品牌型号');
   requireField(payload, 'imei', 'IMEI ');
+  validateImeiFormat(payload);
 }
 
 export function validatePhonePayload(payload: Payload, options: ValidationOptions = {}): void {
