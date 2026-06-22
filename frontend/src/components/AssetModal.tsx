@@ -27,7 +27,7 @@ const slotOptions = [
 ];
 const carrierOptions = ['中国移动', '中国联通', '中国电信', '虚拟运营商'].map((item) => ({ value: item, label: item }));
 const platformOptions = ['微信', '抖音', '小红书', '快手', 'TikTok', 'Google', 'QQ', '微博', 'B站', '淘宝', '京东', '其他'].map((item) => ({ value: item, label: item }));
-const permissionOptions = ['正常', '离职待收回', '已收回'].map((item) => ({ value: item, label: item }));
+const permissionOptions = ['正常', '离职待收回', '已收回', '需复核'].map((item) => ({ value: item, label: item }));
 
 function optionFromMeta(items: Array<{ id: number; name: string; code?: string }> = []) {
   return [{ value: '', label: '未选择' }, ...items.map((item) => ({ value: item.id, label: item.code ? `${item.name} (${item.code})` : item.name }))];
@@ -87,47 +87,46 @@ function renderField(field: Field, entity: AssetEntity | null) {
   const defaultValue = getDefaultValue(entity, field.key);
   if (field.type === 'select') {
     return (
-      <select name={field.key} defaultValue={defaultValue}>
+      <select className="select" name={field.key} defaultValue={defaultValue}>
         {field.options?.map((option) => (
           <option key={String(option.value)} value={option.value}>{option.label}</option>
         ))}
       </select>
     );
   }
-  if (field.type === 'textarea') {
-    return <textarea name={field.key} defaultValue={defaultValue} rows={3} />;
-  }
-  return <input name={field.key} type={field.type ?? 'text'} min={field.type === 'number' ? 0 : undefined} step={field.type === 'number' ? '0.01' : undefined} defaultValue={defaultValue} />;
+  if (field.type === 'textarea') return <textarea className="input" name={field.key} defaultValue={defaultValue} rows={3} />;
+  return <input className="input" name={field.key} type={field.type ?? 'text'} min={field.type === 'number' ? 0 : undefined} step={field.type === 'number' ? '0.01' : undefined} defaultValue={defaultValue} />;
 }
 
 export function AssetModal({ view, entity, meta, onClose, onSubmit }: Props) {
   const title = view === 'devices' ? '设备' : view === 'phones' ? '手机号' : '互联网账号';
   return (
-    <div className="modal-backdrop">
+    <div className="modal-overlay open">
       <form
         className="modal"
         onSubmit={(event) => {
           event.preventDefault();
-          const formData = new FormData(event.currentTarget);
-          const values = Object.fromEntries(formData.entries());
-          onSubmit(values);
+          onSubmit(Object.fromEntries(new FormData(event.currentTarget).entries()));
         }}
       >
         <div className="modal-header">
-          <h2>{entity ? '编辑' : '新增'}{title}</h2>
-          <button type="button" className="icon-button" onClick={onClose}>×</button>
+          <h3>{entity ? '编辑' : '新增'}{title}</h3>
+          <button type="button" className="modal-close" onClick={onClose}>x</button>
         </div>
-        <div className="form-grid">
-          {fieldsFor(view, meta).map((field) => (
-            <label key={field.key}>
-              <span>{field.label}</span>
-              {renderField(field, entity)}
-            </label>
-          ))}
+        <div className="modal-body">
+          <div className="form-section-title">基础信息</div>
+          <div className="form-row-wrap">
+            {fieldsFor(view, meta).map((field) => (
+              <label className="form-group" key={field.key}>
+                <span>{field.label}</span>
+                {renderField(field, entity)}
+              </label>
+            ))}
+          </div>
         </div>
-        <div className="modal-actions">
-          <button type="button" className="ghost-button" onClick={onClose}>取消</button>
-          <button type="submit" className="primary-button">保存</button>
+        <div className="modal-footer">
+          <button type="button" className="btn btn-secondary" onClick={onClose}>取消</button>
+          <button type="submit" className="btn btn-primary">保存</button>
         </div>
       </form>
     </div>

@@ -6,7 +6,7 @@ import type { User } from './types/assets';
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [name, setName] = useState('admin');
-  const [password, setPassword] = useState('admin123');
+  const [password, setPassword] = useState('123456');
   const [error, setError] = useState('');
   const [booting, setBooting] = useState(true);
   const [loggingIn, setLoggingIn] = useState(false);
@@ -37,9 +37,7 @@ function App() {
     }
   }
 
-  if (booting) {
-    return <main className="login-screen">加载中...</main>;
-  }
+  if (booting) return <main className="login-screen">加载中...</main>;
 
   if (!user) {
     return (
@@ -50,7 +48,7 @@ function App() {
           <label><span>用户名</span><input value={name} onChange={(event) => setName(event.target.value)} /></label>
           <label><span>密码</span><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></label>
           {error && <div className="error-banner">{error}</div>}
-          <button className="primary-button" type="submit" disabled={loggingIn}>{loggingIn ? '登录中...' : '登录'}</button>
+          <button className="btn btn-primary login-submit" type="submit" disabled={loggingIn}>{loggingIn ? '登录中...' : '登录'}</button>
         </form>
       </main>
     );
